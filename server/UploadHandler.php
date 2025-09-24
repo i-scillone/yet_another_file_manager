@@ -41,10 +41,10 @@ class UploadHandler
     protected $image_objects = array();
 
     function __construct($options = null, $initialize = true, $error_messages = null) {
-        file_put_contents(__DIR__.'/debug.log',print_r($_REQUEST,true));
+        file_put_contents(__DIR__.'/debug.log',print_r($_POST,true));
         $this->options = array(
             'script_url' => $this->get_full_url().'/',
-            'upload_dir' => dirname($this->get_server_var('SCRIPT_FILENAME')).'/files/',
+            'upload_dir' => $_POST['path'].'/',
             'upload_url' => $this->get_full_url().'/files/',
             'user_dirs' => false,
             'mkdir_mode' => 0755,
