@@ -61,8 +61,8 @@
 <body>
 <?php
 require 'global.php';
-$path = $_REQUEST['path'] ?? __DIR__;
-$url= substr(strtr($path,'\\','/'),strlen($_SERVER['DOCUMENT_ROOT']));
+$path = strtr($_REQUEST['path'] ?? __DIR__,'\\','/');
+$url= substr($path,strlen($_SERVER['DOCUMENT_ROOT']));
 $it=new IntlDateFormatter(
     'it_IT',IntlDateFormatter::MEDIUM,IntlDateFormatter::MEDIUM,'Europe/Rome'
 );
@@ -134,6 +134,7 @@ if (isset($_POST['delete'])) {
             <button id="move" name="move" type="submit" class="btn btn-primary" title="Sposta"><i class="bi bi-arrows-move"></i></button>
             <button id="delete" name="delete" type="submit" class="btn btn-primary" title="Cancella"><i class="bi bi-trash"></i></button>
             <button id="zip" name="zip" type="submit" class="btn btn-primary" title="Crea file Zip"><i class="bi bi-file-zip"></i></button>
+            <?= "<a href='upload.php?path={$path}' class='btn btn-primary' title='Upload'><i class='bi bi-upload'></i></a>" ?>
             <table class="table">
                 <tr><th><input id="all" type="checkbox"></th><th>Nome</th><th>Permessi</th><th>Dimensione</th><th>Data</th><th>Operazioni</th></tr>
 <?php
