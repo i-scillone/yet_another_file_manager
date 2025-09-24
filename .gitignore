@@ -1,0 +1,8 @@
+.htaccess
+/codemirror
+/jquery.min.js
+/error_log
+/test.php
+/diff
+*.log
+*.zip
