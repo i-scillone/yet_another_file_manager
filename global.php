@@ -8,7 +8,7 @@ function varDump(...$x): void
     }
     echo "</pre>\n";
 }
-function dbgLog(...$x): void
+function toLog(...$x): void
 {
     $now=new DateTimeImmutable();
     $trace=debug_backtrace();

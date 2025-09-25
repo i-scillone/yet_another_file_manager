@@ -66,7 +66,7 @@ $url= substr($path,strlen($_SERVER['DOCUMENT_ROOT']));
 $it=new IntlDateFormatter(
     'it_IT',IntlDateFormatter::MEDIUM,IntlDateFormatter::MEDIUM,'Europe/Rome'
 );
-varDump($_REQUEST);
+toLog($_REQUEST);
 ?>
     <div class="container">
 <?php
