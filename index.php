@@ -158,19 +158,19 @@ foreach ($d as $f) {
     echo '</td><td>'.formatSize($stat['size']);
     echo '</td><td>'.$it->format($stat['mtime']);
     printf(
-        '</td><td class="oper"><button class="toClipboard btn btn-primary btn-sm" type="button" value="%s"><i class="bi bi-clipboard"></i></button>',
+        '</td><td class="oper"><button class="toClipboard btn btn-primary btn-sm" type="button" value="%s" title="Nome del file con percorso nella Clipboard"><i class="bi bi-clipboard"></i></button>',
         $full
     );
     printf(
-        '<button name="rename" type="submit" class="rename btn btn-primary btn-sm" value="%s"><i class="bi bi-pencil-square"></i></button>',
+        '<button name="rename" type="submit" class="rename btn btn-primary btn-sm" value="%s" title="Cambia il nome"><i class="bi bi-pencil-square"></i></button>',
         $full
     );
     printf(
-        '<a href="edit.php?file=%s" class="btn btn-primary btn-sm" target="_blank"><i class="bi bi-pen"></i></a>',
+        '<a href="edit.php?file=%s" class="btn btn-primary btn-sm" target="_blank" title="Apre nell\'editor"><i class="bi bi-pen"></i></a>',
         urlencode($full)
     );
     printf(
-        '<button id="unzip" name="unzip" type="submit" class="btn btn-primary btn-sm" value="%s" title="Unzip"><i class="bi bi-file-zip"></i></button>',
+        '<button id="unzip" name="unzip" type="submit" class="btn btn-primary btn-sm" value="%s" title="Unzip in questa dir."><i class="bi bi-file-zip"></i></button>',
         $full
     );
 }

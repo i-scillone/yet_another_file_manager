@@ -40,7 +40,7 @@
     <div class="progress mb-2">
         <div class="progress-bar"></div>
     </div>
-    <p><?= "<a href='index.php?path={$_REQUEST['path']}' class='btn btn-primary'>Torna al f.m.</a>" ?></p>
+    <p><?= "<a href='index.php?path={$_REQUEST['path']}' class='btn btn-primary'>Torna al file manager</a>" ?></p>
 </div>
 </body>
 </html>
