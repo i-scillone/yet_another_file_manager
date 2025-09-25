@@ -135,7 +135,7 @@ if (isset($_POST['delete'])) {
             <button id="delete" name="delete" type="submit" class="btn btn-primary" title="Cancella"><i class="bi bi-trash"></i></button>
             <button id="zip" name="zip" type="submit" class="btn btn-primary" title="Crea file Zip"><i class="bi bi-file-zip"></i></button>
             <?= "<a href='upload.php?path={$path}' class='btn btn-primary' title='Upload'><i class='bi bi-upload'></i></a>" ?>
-            <table class="table">
+            <table class="table table-hover">
                 <tr><th><input id="all" type="checkbox"></th><th>Nome</th><th>Permessi</th><th>Dimensione</th><th>Data</th><th>Operazioni</th></tr>
 <?php
 $d=scandir($path);
