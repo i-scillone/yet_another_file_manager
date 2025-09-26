@@ -25,7 +25,7 @@
     <script src="codemirror/mode/php/php.js"></script>
     <script src="codemirror/mode/shell/shell.js"></script>
     <script src="codemirror/mode/diff/diff.js"></script>
-    <script src="jquery.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
     <style>
         .CodeMirror { height: 75vh; font-size: 12px; }
     </style>
