@@ -8,7 +8,7 @@ function varDump(...$x): void
     }
     echo "</pre>\n";
 }
-function toLog(...$x): void
+function dumpToLog(...$x): void
 {
     $now=new DateTimeImmutable();
     $trace=debug_backtrace();
@@ -16,9 +16,19 @@ function toLog(...$x): void
     fwrite($f,$now->format('[d M, H:i:s.u] '));
     fwrite($f,'['.basename($trace[0]['file']).':'.$trace[0]['line'].']'.PHP_EOL);
     foreach ($x as $v) {
-        fwrite($f,gettype($v)."\t");
+        fwrite($f,'['.gettype($v).'] ');
         fwrite($f,json_encode($v,JSON_UNESCAPED_SLASHES|JSON_PRETTY_PRINT).PHP_EOL);
     }
+    fclose($f);
+}
+function toLog(string $x): void
+{
+    $now=new DateTimeImmutable();
+    $trace=debug_backtrace();
+    $f=fopen(__DIR__.'/debug.log','a');
+    fwrite($f,$now->format('[d M, H:i:s.u] '));
+    fwrite($f,'['.basename($trace[0]['file']).':'.$trace[0]['line'].'] ');
+    fwrite($f,$x.PHP_EOL);
     fclose($f);
 }
 function modeToText(int $x): string
@@ -86,4 +96,23 @@ function zipErr(int $x): string
             break;
     }
     return $r;
+}
+function deleteAll(string $path): bool
+{
+    $d=scandir($path);
+    foreach ($d as $f) {
+        if ($f=='.' || $f=='..') continue;
+        $full=realpath($path.DIRECTORY_SEPARATOR.$f);
+        if (is_dir($full)) {
+            $r1=deleteAll($full);
+            $r2=rmdir($full);
+            if (!$r1 && !$r2) return false;
+        } else {
+            $r1=chmod($full,0666);
+            $r2=unlink($full);
+            if (!$r1 && !$r2) return false;
+        }
+    }
+    $r1=rmdir($path);
+    return $r1;
 }

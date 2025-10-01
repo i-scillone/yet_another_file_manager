@@ -66,7 +66,6 @@ $url= substr($path,strlen($_SERVER['DOCUMENT_ROOT']));
 $it=new IntlDateFormatter(
     'it_IT',IntlDateFormatter::MEDIUM,IntlDateFormatter::MEDIUM,'Europe/Rome'
 );
-toLog($_REQUEST);
 ?>
     <div class="container">
 <?php
@@ -74,7 +73,7 @@ echo "<h2>$path</h2>\n";
 if (isset($_POST['delete'])) {
     foreach ($_POST['sel'] as $f) {
         $full=$path.'/'.$f;
-        if (is_dir($full)) $r=rmdir($full);
+        if (is_dir($full)) $r=deleteAll($full);
         else $r=unlink($full);
         if (!$r) echo "<div class='alert alert-warning'>$f non cancellato</div>\n";
     }
