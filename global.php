@@ -102,7 +102,7 @@ function deleteAll(string $path): bool
     $d=scandir($path);
     foreach ($d as $f) {
         if ($f=='.' || $f=='..') continue;
-        $full=realpath($path.DIRECTORY_SEPARATOR.$f);
+        $full=realpath($path.'/'.$f);
         if (is_dir($full)) {
             $r1=deleteAll($full);
             $r2=rmdir($full);

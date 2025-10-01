@@ -1,3 +1,7 @@
+<?php
+session_set_cookie_params(3600,dirname($_SERVER['REQUEST_URI']));
+session_start();
+?>
 <!doctype html>
 <html lang="it" data-bs-theme="dark">
 <head>
@@ -59,6 +63,7 @@
     </script>
 </head>
 <body>
+    <div class="container">
 <?php
 require 'global.php';
 $path = strtr($_REQUEST['path'] ?? __DIR__,'\\','/');
@@ -66,9 +71,6 @@ $url= substr($path,strlen($_SERVER['DOCUMENT_ROOT']));
 $it=new IntlDateFormatter(
     'it_IT',IntlDateFormatter::MEDIUM,IntlDateFormatter::MEDIUM,'Europe/Rome'
 );
-?>
-    <div class="container">
-<?php
 echo "<h2>$path</h2>\n";
 if (isset($_POST['delete'])) {
     foreach ($_POST['sel'] as $f) {
@@ -122,11 +124,25 @@ if (isset($_POST['delete'])) {
         echo "<div class='alert alert-danger'>Impossibile cancellare $_POST[newName]</div>";
     }
 }
+if (isset($_GET['sort'])) {
+    $_SESSION['sort']=$_GET['sort'];
+} else {
+    $_SESSION['sort']='n';
+}
 ?>
         <form id="mainForm" name="mainForm" method="post">
             <?= "<input name='path' type='hidden' value='$path'>" ?>
-            <button class='btn btn-primary' title="Rileggi la dir."><i class='bi bi-arrow-clockwise'></i></button>
             <?php printf("<a href='index.php?path=%s' class='btn btn-primary' title='Dir. superiore'><i class='bi bi-arrow-up'></i></a>",realpath($path.'/..')); ?>
+            <button class='btn btn-primary' title="Rileggi la dir."><i class='bi bi-arrow-clockwise'></i></button>
+            <span class="dropdown">
+                <button class="btn btn-primary dropdown-toggle" type="button" data-bs-toggle="dropdown"><i class="bi bi-sort-up"></i></button>
+                <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" href="index.php?sort=n">Nome</a></li>
+                    <li><a class="dropdown-item" href="index.php?sort=e">Estensione</a></li>
+                    <li><a class="dropdown-item" href="index.php?sort=s">Dimensione</a></li>
+                    <li><a class="dropdown-item" href="index.php?sort=d">Data</a></li>
+                </ul>
+            </span>
             <button id="newFile" name="newFile" type="submit" class="btn btn-primary" title="Nuovo file"><i class="bi bi-file-earmark-plus"></i></button>
             <button id="newDir" name="newDir" type="submit" class="btn btn-primary" title="Nuova dir."><i class="bi bi-folder-plus"></i></button>
             <button id="copy" name="copy" type="submit" class="btn btn-primary" title="Copia"><i class="bi bi-copy"></i></button>
@@ -140,7 +156,7 @@ if (isset($_POST['delete'])) {
 $d=scandir($path);
 foreach ($d as $f) {
     if ($f=='.' || $f=='..') continue;
-    $full=realpath($path.DIRECTORY_SEPARATOR.$f);
+    $full=realpath($path.'/'.$f);
     $stat=stat($full);
     printf(
         '<tr><td><input name="sel[]" type="checkbox" value="%s"></td><td>',
