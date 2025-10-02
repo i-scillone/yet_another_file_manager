@@ -147,7 +147,7 @@ if (isset($_REQUEST['sort'])) {
 ?>
         <form id="mainForm" name="mainForm" method="post">
             <?= "<input name='path' type='hidden' value='$path'>" ?>
-            <?php printf("<a href='index.php?path=%s' class='btn btn-primary' title='Dir. superiore'><i class='bi bi-arrow-up'></i></a>",realpath($path.'/..')); ?>
+            <?php printf("<a href='index.php?path=%s' class='btn btn-primary' title='Dir. superiore'><i class='bi bi-arrow-up'></i></a>",@realpath($path.'/..')); ?>
             <button class='btn btn-primary' title="Rileggi la dir."><i class='bi bi-arrow-clockwise'></i></button>
             <span class="dropdown">
                 <button class="btn btn-primary dropdown-toggle" type="button" data-bs-toggle="dropdown"><i class="bi bi-sort-up"></i></button>

@@ -72,7 +72,7 @@ function deleteAll(string $path): bool
         $full=realpath($path.'/'.$f);
         if (is_dir($full)) {
             $r1=deleteAll($full);
-            $r2=rmdir($full);
+            $r2=@rmdir($full);
             if (!$r1 && !$r2) return false;
         } else {
             $r1=chmod($full,0666);
