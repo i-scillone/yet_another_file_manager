@@ -162,7 +162,6 @@ class dirStruct implements Iterator
     }
     public function sortBy(string $order,bool $desc=false)
     {
-        dumpToLog($order,$desc);
         usort($this->struct,function($a,$b) use ($order,$desc){
             switch ($order) {
                 case 'n':

@@ -28,7 +28,8 @@ session_start();
             alert("Copio nella Clipboard\n"+p);                          
         });
         $('#delete').on('click',function(ev){
-            if (!confirm('Vuoi cancellare il/i file selezionato/i?')) {
+            var tot=$('.fileSel:checked').length;
+            if (!confirm(`Hai selezionato ${tot} file.\nVuoi veramente cancellarlo/i?`)) {
                 ev.preventDefault();
             }
         });
@@ -42,6 +43,13 @@ session_start();
             if (name) {
                 $('#mainForm').append(`<input name="newName" type="hidden" value="${name}">`);
             } else ev.preventDefault();
+        });
+        $('.chmod').on('click',function(ev){
+            var mode=prompt('Nuovi permessi?');
+            if (mode) {
+                $('#mainForm').append(`<input name="newMode" type="hidden" value="${mode}">`);
+            }
+            else ev.preventDefault();
         });
         $('#newDir').on('click',function(ev){
             var name=prompt('Nome della nuova directory?');
@@ -123,8 +131,12 @@ if (isset($_REQUEST['delete'])) {
     if ($r==false) {
         echo "<div class='alert alert-danger'>Impossibile cancellare $_REQUEST[newName]</div>";
     }
+} elseif (isset($_REQUEST['chmod'])) {
+    $r=chmod($_REQUEST['chmod'],$_REQUEST['newMode']);
+    if ($r==false) {
+        echo "<div class='alert alert-danger'>Permessi di $_REQUEST[chmod] intatti</div>";
+    }
 }
-dumpToLog($_REQUEST);
 if (isset($_REQUEST['sort'])) {
     $_SESSION['sort']=$_REQUEST['sort'];
     $_SESSION['desc']=isset($_REQUEST['desc']);
@@ -166,7 +178,7 @@ $d=new dirStruct($path);
 $d->sortBy($_SESSION['sort'],$_SESSION['desc']);
 foreach ($d as $f) {
     printf(
-        '<tr><td><input name="sel[]" type="checkbox" value="%s"></td><td>',
+        '<tr><td><input class="fileSel" name="sel[]" type="checkbox" value="%s"></td><td>',
         $f->getName()
     );
     if ($f->mode & 040000) {
@@ -185,6 +197,10 @@ foreach ($d as $f) {
     );
     printf(
         '<button name="rename" type="submit" class="rename btn btn-primary btn-sm" value="%s" title="Cambia il nome"><i class="bi bi-pencil-square"></i></button>',
+        $f->path
+    );
+    printf(
+        '<button name="chmod" type="submit" class="chmod btn btn-primary btn-sm" value="%s" title="Cambia i permessi"><i class="bi bi-ui-checks-grid"></i></button>',
         $f->path
     );
     printf(
