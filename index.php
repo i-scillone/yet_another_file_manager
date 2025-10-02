@@ -72,62 +72,65 @@ $it=new IntlDateFormatter(
     'it_IT',IntlDateFormatter::MEDIUM,IntlDateFormatter::MEDIUM,'Europe/Rome'
 );
 echo "<h2>$path</h2>\n";
-if (isset($_POST['delete'])) {
-    foreach ($_POST['sel'] as $f) {
+if (isset($_REQUEST['delete'])) {
+    foreach ($_REQUEST['sel'] as $f) {
         $full=$path.'/'.$f;
         if (is_dir($full)) $r=deleteAll($full);
         else $r=unlink($full);
         if (!$r) echo "<div class='alert alert-warning'>$f non cancellato</div>\n";
     }
-} elseif (isset($_POST['newFile'])) {
-    $full=$path.'/'.$_POST['newFile'];
+} elseif (isset($_REQUEST['newFile'])) {
+    $full=$path.'/'.$_REQUEST['newFile'];
     file_put_contents($full,'');
-} elseif (isset($_POST['newDir'])) {
-    $full=$path.'/'.$_POST['newDir'];
+} elseif (isset($_REQUEST['newDir'])) {
+    $full=$path.'/'.$_REQUEST['newDir'];
     mkdir($full);
-} elseif (isset($_POST['copy']) || isset($_POST['move'])) {
-    if (isset($_POST['copy'])) $dest=$_POST['copy'];
-    else $dest=$_POST['move'];
+} elseif (isset($_REQUEST['copy']) || isset($_REQUEST['move'])) {
+    if (isset($_REQUEST['copy'])) $dest=$_REQUEST['copy'];
+    else $dest=$_REQUEST['move'];
     if (file_exists($dest)) {
-        foreach ($_POST['sel'] as $f) {
+        foreach ($_REQUEST['sel'] as $f) {
             $from=$path.'/'.$f;
             $to=$dest.'/'.$f;
-            if (isset($_POST['copy'])) copy($from,$to);
+            if (isset($_REQUEST['copy'])) copy($from,$to);
             else rename($from,$to);
         }
     } else {
         echo "<div class='alert alert-danger'>$dest non esiste!</div>\n";
     }
-} elseif (isset($_POST['zip'])) {
+} elseif (isset($_REQUEST['zip'])) {
     $z=new ZipArchive();
-    $r=$z->open($path.'/'.$_POST['zip'],ZipArchive::CREATE);
+    $r=$z->open($path.'/'.$_REQUEST['zip'],ZipArchive::CREATE);
     if ($r===true) {
-        foreach ($_POST['sel'] as $f) {
+        foreach ($_REQUEST['sel'] as $f) {
             $z->addFile($f);
         }
         $z->close();
     } else {
         echo '<div class="alert alert-danger">'.zipErr($r).'</div>';
     }
-} elseif (isset($_POST['unzip'])) {
+} elseif (isset($_REQUEST['unzip'])) {
     $z=new ZipArchive();
-    $r=$z->open($_POST['unzip']);
+    $r=$z->open($_REQUEST['unzip']);
     if ($r===true) {
         $z->extractTo($path);
         $z->close();
     } else {
         echo '<div class="alert alert-danger">'.zipErr($r).'</div>';
     }
-} elseif (isset($_POST['rename'])) {
-    $r=rename($_POST['rename'],$_POST['path'].'/'.$_POST['newName']);
+} elseif (isset($_REQUEST['rename'])) {
+    $r=rename($_REQUEST['rename'],$_REQUEST['path'].'/'.$_REQUEST['newName']);
     if ($r==false) {
-        echo "<div class='alert alert-danger'>Impossibile cancellare $_POST[newName]</div>";
+        echo "<div class='alert alert-danger'>Impossibile cancellare $_REQUEST[newName]</div>";
     }
 }
-if (isset($_GET['sort'])) {
-    $_SESSION['sort']=$_GET['sort'];
+dumpToLog($_REQUEST);
+if (isset($_REQUEST['sort'])) {
+    $_SESSION['sort']=$_REQUEST['sort'];
+    $_SESSION['desc']=isset($_REQUEST['desc']);
 } else {
     $_SESSION['sort']='n';
+    $_SESSION['desc']=false;
 }
 ?>
         <form id="mainForm" name="mainForm" method="post">
@@ -137,10 +140,16 @@ if (isset($_GET['sort'])) {
             <span class="dropdown">
                 <button class="btn btn-primary dropdown-toggle" type="button" data-bs-toggle="dropdown"><i class="bi bi-sort-up"></i></button>
                 <ul class="dropdown-menu">
-                    <li><a class="dropdown-item" href="index.php?sort=n">Nome</a></li>
-                    <li><a class="dropdown-item" href="index.php?sort=e">Estensione</a></li>
-                    <li><a class="dropdown-item" href="index.php?sort=s">Dimensione</a></li>
-                    <li><a class="dropdown-item" href="index.php?sort=d">Data</a></li>
+                    <li><button name="sort" class="dropdown-item" type="submit" value="n">Nome</button></li>
+                    <li><button name="sort" class="dropdown-item" type="submit" value="e">Estensione</button></li>
+                    <li><button name="sort" class="dropdown-item" type="submit" value="s">Dimensione</button></li>
+                    <li><button name="sort" class="dropdown-item" type="submit" value="d">Data</button></li>
+                    <li>
+                        <div class="form-check dropdown-item">
+                            <input id="desc" name="desc" class="form-check-input" type="checkbox">
+                            <label for="desc" class="form-check-label">Discendente</label>
+                        </div>
+                    </li>
                 </ul>
             </span>
             <button id="newFile" name="newFile" type="submit" class="btn btn-primary" title="Nuovo file"><i class="bi bi-file-earmark-plus"></i></button>
@@ -153,40 +162,38 @@ if (isset($_GET['sort'])) {
             <table class="table table-hover">
                 <tr><th><input id="all" type="checkbox"></th><th>Nome</th><th>Permessi</th><th>Dimensione</th><th>Data</th><th>Operazioni</th></tr>
 <?php
-$d=scandir($path);
+$d=new dirStruct($path);
+$d->sortBy($_SESSION['sort'],$_SESSION['desc']);
 foreach ($d as $f) {
-    if ($f=='.' || $f=='..') continue;
-    $full=realpath($path.'/'.$f);
-    $stat=stat($full);
     printf(
         '<tr><td><input name="sel[]" type="checkbox" value="%s"></td><td>',
-        $f
+        $f->getName()
     );
-    if ($stat['mode'] & 040000) {
+    if ($f->mode & 040000) {
         echo '<i class="bi bi-folder"></i> ';
-        printf('<a href="index.php?path=%s">%s</a>',urlencode($full),htmlspecialchars($f));
+        printf('<a href="index.php?path=%s">%s</a>',urlencode($f->path),htmlspecialchars($f->getName()));
     } else {
         echo '<i class="bi bi-file-earmark"></i> ';
-        printf('<a href="%s" class="cleanLink" target="_blank">%s</a>',$url.'/'.$f,htmlspecialchars($f));
+        printf('<a href="%s" class="cleanLink" target="_blank">%s</a>',$url.'/'.$f->getName(),htmlspecialchars($f->getName()));
     }
-    echo '</td><td class="font-monospace">'.modeToText($stat['mode']);
-    echo '</td><td>'.formatSize($stat['size']);
-    echo '</td><td>'.$it->format($stat['mtime']);
+    echo '</td><td class="font-monospace">'.$f->getMode();
+    echo '</td><td>'.$f->getSize();
+    echo '</td><td>'.$f->getTime();
     printf(
         '</td><td class="oper"><button class="toClipboard btn btn-primary btn-sm" type="button" value="%s" title="Nome del file con percorso nella Clipboard"><i class="bi bi-clipboard"></i></button>',
-        $full
+        $f->path
     );
     printf(
         '<button name="rename" type="submit" class="rename btn btn-primary btn-sm" value="%s" title="Cambia il nome"><i class="bi bi-pencil-square"></i></button>',
-        $full
+        $f->path
     );
     printf(
         '<a href="edit.php?file=%s" class="btn btn-primary btn-sm" target="_blank" title="Apre nell\'editor"><i class="bi bi-pen"></i></a>',
-        urlencode($full)
+        urlencode($f->path)
     );
     printf(
         '<button id="unzip" name="unzip" type="submit" class="btn btn-primary btn-sm" value="%s" title="Unzip in questa dir."><i class="bi bi-file-zip"></i></button>',
-        $full
+        $f->path
     );
 }
     echo "</td></tr>\n";
