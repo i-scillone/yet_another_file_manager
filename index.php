@@ -117,7 +117,10 @@ if (isset($_REQUEST['delete'])) {
     $r=$z->open($path.'/'.$_REQUEST['zip'],ZipArchive::CREATE);
     if ($r===true) {
         foreach ($_REQUEST['sel'] as $f) {
-            $z->addFile($f);
+            $abs=$path.'/'.$f;
+            if (is_dir($abs)) $added=false;
+            else $added=$z->addFile($abs,$f);
+            if (!$added) echo "<div class='alert alert-warning'>Non aggiunto $f</div>";
         }
         $z->close();
     } else {

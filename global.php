@@ -204,3 +204,21 @@ class dirStruct implements Iterator
         return isset($this->struct[$this->index]);
     }
 }
+class MyZip extends ZipArchive
+{
+    public function fromList(array $list)
+    {
+        foreach ($list as $item) {
+            if ($item=='.' || $item=='..') continue;
+            if (is_dir($item)) {
+                echo "\e[31m$item è una dir.\e[0m\n";
+                $d=scandir($item);
+                $this->fromList($d);
+            }
+            else {
+                echo "$item\n";
+                $this->addFile($item);
+            }
+        }
+    }
+}
