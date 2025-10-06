@@ -24,8 +24,14 @@ session_start();
         });
         $('.toClipboard').on('click',function(ev){
             var p=this.value;
-            navigator.clipboard.writeText(p);
-            alert("Copio nella Clipboard\n"+p);                          
+            navigator.clipboard
+                .writeText(p)
+                .then(function(){
+                    alert(`"${p}" copiato nella Clipboard`);
+            	})
+                .catch(function(e){
+                    alert("Errore:\n"+e);
+                });                          
         });
         $('#delete').on('click',function(ev){
             var tot=$('.fileSel:checked').length;
