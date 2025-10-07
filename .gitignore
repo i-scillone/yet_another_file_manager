@@ -4,5 +4,6 @@
 /error_log
 /test.php
 /diff
+/patch
 *.log
 *.zip

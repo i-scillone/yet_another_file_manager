@@ -206,18 +206,18 @@ class dirStruct implements Iterator
 }
 class MyZip extends ZipArchive
 {
-    public function fromList(array $list)
+    public function recursive(array $list,string $parent='',string $base='')
     {
+        if ($base=='') $base=$parent;
         foreach ($list as $item) {
-            if ($item=='.' || $item=='..') continue;
-            if (is_dir($item)) {
-                echo "\e[31m$item è una dir.\e[0m\n";
-                $d=scandir($item);
-                $this->fromList($d);
-            }
-            else {
-                echo "$item\n";
-                $this->addFile($item);
+            if (str_ends_with($item,'.') || str_ends_with($item,'..')) continue;
+            $full=$parent.'/'.$item;
+            $rel=substr($full,strlen($base)+1);
+            if (is_dir($full)) {
+                $d=scandir($full);
+                $this->recursive($d,$full,$base);
+            } else {
+                $this->addFile($full,$rel);
             }
         }
     }

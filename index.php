@@ -24,10 +24,9 @@ session_start();
         });
         $('.toClipboard').on('click',function(ev){
             var p=this.value;
-            navigator.clipboard
-                .writeText(p)
+            navigator.clipboard.writeText(p)
                 .then(function(){
-                    alert(`"${p}" copiato nella Clipboard`);
+                    alert('"'+p+'" copiato nella Clipboard');
             	})
                 .catch(function(e){
                     alert("Errore:\n"+e);
@@ -113,16 +112,12 @@ if (isset($_REQUEST['delete'])) {
         echo "<div class='alert alert-danger'>$dest non esiste!</div>\n";
     }
 } elseif (isset($_REQUEST['zip'])) {
-    $z=new ZipArchive();
+    $z=new MyZip();
     $r=$z->open($path.'/'.$_REQUEST['zip'],ZipArchive::CREATE);
     if ($r===true) {
-        foreach ($_REQUEST['sel'] as $f) {
-            $abs=$path.'/'.$f;
-            if (is_dir($abs)) $added=false;
-            else $added=$z->addFile($abs,$f);
-            if (!$added) echo "<div class='alert alert-warning'>Non aggiunto $f</div>";
-        }
-        $z->close();
+        $z->recursive($_REQUEST['sel'],$path);
+        $closed=$z->close();
+        if (!$closed) echo '<div class="alert alert-danger">Non chiuso!</div>';
     } else {
         echo '<div class="alert alert-danger">'.zipErr($r).'</div>';
     }
