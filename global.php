@@ -160,26 +160,26 @@ class dirStruct implements Iterator
         }
         $this->index=0;
     }
-    public function sortBy(string $order,bool $desc=false)
+    public function sortBy()
     {
-        usort($this->struct,function($a,$b) use ($order,$desc){
-            switch ($order) {
-                case 'n':
+        usort($this->struct,function($a,$b){
+            switch ($_SESSION['sort']) {
+                case 'byName':
                     $r=mb_strtolower($a->getName()) <=> mb_strtolower($b->getName());
                     break;
-                case 'e':
+                case 'byExt':
                     $r=$a->getExt() <=> $b->getExt();
                     break;
-                case 's':
+                case 'bySize':
                     $r=$a->size <=> $b->size;
                     break;
-                case 'd':
+                case 'byDate':
                     $r=$a->time <=> $b->time;
                     break;
                 default:
                     $r=0;
             }
-            if ($desc) return -$r;
+            if ($_SESSION['desc']) return -$r;
             else return $r;
         });
     }
@@ -221,4 +221,26 @@ class MyZip extends ZipArchive
             }
         }
     }
+}
+const SORT_MENU_OPTIONS=[
+    'byName'=>'Nome',
+    'byExt'=>'Estensione',
+    'bySize'=>'Dimensione',
+    'byDate'=>'Data/ora'
+];
+function sortMenu(): string
+{
+    $buf='';
+    foreach (SORT_MENU_OPTIONS as $k=>$v) {
+        $sel=$_SESSION['sort']==$k? ' selected': '';
+        $buf.="<option value='{$k}'{$sel}>{$v}</option>";
+    }
+    return $buf;
+}
+function yesNo(mixed $val, string $yes='sì', string $no='no'): string
+{
+    $sel=['',''];
+    if ($val) $sel[1]=' selected';
+    else $sel[0]=' selected';
+    return "<option value=0{$sel[0]}>{$no}</option><option value=1{$sel[1]}>{$yes}</option>";
 }

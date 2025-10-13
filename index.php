@@ -79,7 +79,9 @@ session_start();
     <div class="container">
 <?php
 require 'global.php';
-$path = strtr($_REQUEST['path'] ?? __DIR__,'\\','/');
+if (isset($_GET['path'])) $_SESSION['path']=$_GET['path'];
+elseif (!isset($_SESSION['path'])) $_SESSION['path']=__DIR__;
+$path = strtr($_SESSION['path'],'\\','/');
 $url= substr($path,strlen($_SERVER['DOCUMENT_ROOT']));
 $it=new IntlDateFormatter(
     'it_IT',IntlDateFormatter::MEDIUM,IntlDateFormatter::MEDIUM,'Europe/Rome'
@@ -141,32 +143,27 @@ if (isset($_REQUEST['delete'])) {
         echo "<div class='alert alert-danger'>Permessi di $_REQUEST[chmod] intatti</div>";
     }
 }
-if (isset($_REQUEST['sort'])) {
-    $_SESSION['sort']=$_REQUEST['sort'];
-    $_SESSION['desc']=isset($_REQUEST['desc']);
-} else {
-    $_SESSION['sort']='n';
-    $_SESSION['desc']=false;
-}
+if (isset($_REQUEST['sort'])) $_SESSION['sort']=$_REQUEST['sort'];
+elseif (!isset($_SESSION['sort'])) $_SESSION['sort']='byName';
+if (isset($_REQUEST['desc'])) $_SESSION['desc']=$_REQUEST['desc'];
+elseif (!isset($_SESSION['desc'])) $_SESSION['desc']=0;
 ?>
         <form id="mainForm" name="mainForm" method="post">
             <?= "<input name='path' type='hidden' value='$path'>" ?>
             <?php printf("<a href='index.php?path=%s' class='btn btn-primary' title='Dir. superiore'><i class='bi bi-arrow-up'></i></a>",@realpath($path.'/..')); ?>
-            <button class='btn btn-primary' title="Rileggi la dir."><i class='bi bi-arrow-clockwise'></i></button>
+            <a href="index.php" class='btn btn-primary' title="Rileggi la dir."><i class='bi bi-arrow-clockwise'></i></a>
             <span class="dropdown">
                 <button class="btn btn-primary dropdown-toggle" type="button" data-bs-toggle="dropdown"><i class="bi bi-sort-up"></i></button>
-                <ul class="dropdown-menu">
-                    <li><button name="sort" class="dropdown-item" type="submit" value="n">Nome</button></li>
-                    <li><button name="sort" class="dropdown-item" type="submit" value="e">Estensione</button></li>
-                    <li><button name="sort" class="dropdown-item" type="submit" value="s">Dimensione</button></li>
-                    <li><button name="sort" class="dropdown-item" type="submit" value="d">Data</button></li>
-                    <li>
-                        <div class="form-check dropdown-item">
-                            <input id="desc" name="desc" class="form-check-input" type="checkbox">
-                            <label for="desc" class="form-check-label">Discendente</label>
-                        </div>
-                    </li>
-                </ul>
+                <div class="dropdown-menu p-2">
+                    <label for="sort" class="form-label">Ordina per…</label>
+                    <select id="sort" name="sort" class="form-select mb-1">
+                        <?= sortMenu() ?>
+                    </select>
+                    <select id="desc" name="desc" class="form-select mb-1">
+                        <?= yesNo($_SESSION['desc'],'discendente','ascendente') ?>
+                    </select>
+                    <button name="reorder" type="submit" class="btn btn-primary btn-sm">Riordina</button>
+                </div>
             </span>
             <button id="newFile" name="newFile" type="submit" class="btn btn-primary" title="Nuovo file"><i class="bi bi-file-earmark-plus"></i></button>
             <button id="newDir" name="newDir" type="submit" class="btn btn-primary" title="Nuova dir."><i class="bi bi-folder-plus"></i></button>
@@ -179,7 +176,7 @@ if (isset($_REQUEST['sort'])) {
                 <tr><th><input id="all" type="checkbox"></th><th>Nome</th><th>Permessi</th><th>Dimensione</th><th>Data</th><th>Operazioni</th></tr>
 <?php
 $d=new dirStruct($path);
-$d->sortBy($_SESSION['sort'],$_SESSION['desc']);
+$d->sortBy();
 foreach ($d as $f) {
     printf(
         '<tr><td><input class="fileSel" name="sel[]" type="checkbox" value="%s"></td><td>',
@@ -193,8 +190,8 @@ foreach ($d as $f) {
         printf('<a href="%s" class="cleanLink" target="_blank">%s</a>',$url.'/'.$f->getName(),htmlspecialchars($f->getName()));
     }
     echo '</td><td class="font-monospace">'.$f->getMode();
-    echo '</td><td>'.$f->getSize();
-    echo '</td><td>'.$f->getTime();
+    echo '</td><td class="text-end">'.$f->getSize();
+    echo '</td><td class="text-end">'.$f->getTime();
     printf(
         '</td><td class="oper"><button class="toClipboard btn btn-primary btn-sm" type="button" value="%s" title="Nome del file con percorso nella Clipboard"><i class="bi bi-clipboard"></i></button>',
         $f->path
