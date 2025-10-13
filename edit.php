@@ -2,6 +2,8 @@
 session_set_cookie_params(3600,dirname($_SERVER['REQUEST_URI']));
 session_start();
 $theme=$_SESSION['theme'];
+if ($theme=='dark') $editorTheme='shadowfox';
+else $editorTheme='eclipse';
 ?>
 <!doctype html>
 <html lang="it" data-bs-theme="<?= $theme ?>">
@@ -13,6 +15,7 @@ $theme=$_SESSION['theme'];
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="codemirror/lib/codemirror.css">
     <link rel="stylesheet" href="codemirror/theme/shadowfox.css">
+    <link rel="stylesheet" href="codemirror/theme/eclipse.css">
     <link rel="stylesheet" href="codemirror/addon/dialog/dialog.css">
     <script src="codemirror/lib/codemirror.js"></script>
     <script src="codemirror/addon/edit/matchbrackets.js"></script>
@@ -104,7 +107,7 @@ if (isset($_REQUEST['doIt'])) {
         var ed;
         $(function(){
             ed=CodeMirror.fromTextArea(document.mainForm.source,{
-                theme: 'shadowfox',
+                theme: '<?= $editorTheme ?>',
                 lineNumbers: true,
                 indentUnit: 4,
                 matchBrackets: true,
@@ -118,7 +121,7 @@ if (isset($_REQUEST['doIt'])) {
                         cm.execCommand('indentLess');
                     }
                 },
-                <?= "mode: '$mode'" ?>
+                mode: '<?= $mode ?>'
             });
             for (k in CodeMirror.keyMap.default) {
                 var v=CodeMirror.keyMap.default[k];
