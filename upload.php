@@ -1,5 +1,10 @@
+<?php
+session_set_cookie_params(3600,dirname($_SERVER['REQUEST_URI']));
+session_start();
+$theme=$_SESSION['theme'];
+?>
 <!doctype html>
-<html lang="it" data-bs-theme="dark">
+<html lang="it" data-bs-theme="<?= $theme ?>">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">

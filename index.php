@@ -1,9 +1,15 @@
 <?php
 session_set_cookie_params(3600,dirname($_SERVER['REQUEST_URI']));
 session_start();
+$theme= $_SESSION['theme'] ?? 'dark';
+if (isset($_REQUEST['theme'])) {
+    if ($theme=='dark') $theme='light';
+    else $theme='dark';
+}
+$_SESSION['theme']=$theme;
 ?>
 <!doctype html>
-<html lang="it" data-bs-theme="dark">
+<html lang="it" data-bs-theme="<?= $theme ?>">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -172,6 +178,7 @@ elseif (!isset($_SESSION['desc'])) $_SESSION['desc']=0;
             <button id="delete" name="delete" type="submit" class="btn btn-primary" title="Cancella"><i class="bi bi-trash"></i></button>
             <button id="zip" name="zip" type="submit" class="btn btn-primary" title="Crea file Zip"><i class="bi bi-file-zip"></i></button>
             <?= "<a href='upload.php?path={$path}' class='btn btn-primary' title='Upload'><i class='bi bi-upload'></i></a>" ?>
+            <button id="theme" name="theme" type="submit" class="btn btn-primary" title="Tema"><i class="bi bi-brilliance"></i></button>
             <table class="table table-hover">
                 <tr><th><input id="all" type="checkbox"></th><th>Nome</th><th>Permessi</th><th>Dimensione</th><th>Data</th><th>Operazioni</th></tr>
 <?php
