@@ -85,10 +85,11 @@ $_SESSION['theme']=$theme;
     <div class="container">
 <?php
 require 'global.php';
+define('DOCUMENT_ROOT',realpath(__DIR__.'/..'));
 if (isset($_GET['path'])) $_SESSION['path']=$_GET['path'];
 elseif (!isset($_SESSION['path'])) $_SESSION['path']=__DIR__;
 $path = strtr($_SESSION['path'],'\\','/');
-$url= substr($path,strlen($_SERVER['DOCUMENT_ROOT']));
+$url= substr($path,strlen(DOCUMENT_ROOT));
 $it=new IntlDateFormatter(
     'it_IT',IntlDateFormatter::MEDIUM,IntlDateFormatter::MEDIUM,'Europe/Rome'
 );
