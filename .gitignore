@@ -1,6 +1,6 @@
 .htaccess
-/codemirror
-/jquery.min.js
+/codemirror/*
+!/codemirror/.gitkeep
 /error_log
 /test.php
 /diff
