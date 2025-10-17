@@ -106,7 +106,6 @@ function copyDir(string $from, string $to): bool
             $r=copyDir($f0,$f1);
             if (!$r) return false;
         } else {
-            varDump($f0,$f1);
             copy($f0,$f1); // V. doc.ne
         }
     }
