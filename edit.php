@@ -2,8 +2,13 @@
 session_set_cookie_params(3600,dirname($_SERVER['REQUEST_URI']));
 session_start();
 $theme=$_SESSION['theme'];
-if ($theme=='dark') $editorTheme='shadowfox';
-else $editorTheme='eclipse';
+if ($theme=='dark') {
+    $editorTheme='shadowfox';
+    $ruler='"#404000"';
+} else {
+    $editorTheme='eclipse';
+    $ruler='"#ffff00"';
+}
 ?>
 <!doctype html>
 <html lang="it" data-bs-theme="<?= $theme ?>">
@@ -33,6 +38,7 @@ else $editorTheme='eclipse';
     <script src="codemirror/mode/php/php.js"></script>
     <script src="codemirror/mode/shell/shell.js"></script>
     <script src="codemirror/mode/diff/diff.js"></script>
+    <script src="codemirror/addon/display/rulers.js"></script>
     <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
     <style>
         .CodeMirror { height: 75vh; font-size: 12px; }
@@ -121,6 +127,11 @@ if (isset($_REQUEST['doIt'])) {
                         cm.execCommand('indentLess');
                     }
                 },
+                rulers: [{ 
+                    column: 80,
+                    color: <?= $ruler ?>,
+                    lineStyle: 'dashed'
+                }],
                 mode: '<?= $mode ?>'
             });
             for (k in CodeMirror.keyMap.default) {
