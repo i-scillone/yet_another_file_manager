@@ -114,8 +114,12 @@ if (isset($_REQUEST['delete'])) {
         foreach ($_REQUEST['sel'] as $f) {
             $from=$path.'/'.$f;
             $to=$dest.'/'.$f;
-            if (isset($_REQUEST['copy'])) copy($from,$to);
-            else rename($from,$to);
+            if (isset($_REQUEST['copy'])) {
+                if (is_dir($from)) copyDir($from,$to);
+                else {
+                    copy($from,$to);
+                }
+            } else rename($from,$to);
         }
     } else {
         echo "<div class='alert alert-danger'>$dest non esiste!</div>\n";

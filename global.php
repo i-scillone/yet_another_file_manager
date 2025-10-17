@@ -2,7 +2,8 @@
 function varDump(...$x): void
 {
     $trace=debug_backtrace();
-    echo "<pre class='text-info'>Riga {$trace[0]['line']}:\n";
+    $f=basename($trace[0]['file']);
+    echo "<pre class='text-info'>{$f}:{$trace[0]['line']}:\n";
     foreach ($x as $item) {
         echo '‹'.gettype($item).'› '.json_encode($item,JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES).PHP_EOL;
     }
@@ -77,11 +78,39 @@ function deleteAll(string $path): bool
         } else {
             $r1=chmod($full,0666);
             $r2=unlink($full);
-            if (!$r1 && !$r2) return false;
+            if (!$r1 && !$r2) return false;            
         }
     }
     $r1=rmdir($path);
     return $r1;
+}
+/**
+ * Copia un'intera directory.
+ * 
+ * @param string $from Directory da copiare.
+ * @param string $to   Directory destinataria.
+ * 
+ * @return bool Restituisce true in assenza d'errori, altrimenti false.
+ */
+function copyDir(string $from, string $to): bool
+{
+    $d=scandir($from);
+    if (!file_exists($to)) mkdir($to);
+    foreach ($d as $f) {
+        if ($f=='.' || $f=='..') continue;
+        $f0=$from.'/'.$f;
+        $f1=$to.'/'.$f;
+        if (is_dir($f0)) {
+            $r=mkdir($f1);
+            if (!$r) return false;
+            $r=copyDir($f0,$f1);
+            if (!$r) return false;
+        } else {
+            varDump($f0,$f1);
+            copy($f0,$f1); // V. doc.ne
+        }
+    }
+    return true;
 }
 class dirEntry
 {
