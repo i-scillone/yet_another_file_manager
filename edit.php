@@ -142,6 +142,11 @@ if (isset($_REQUEST['doIt'])) {
                 var v=CodeMirror.keyMap.default[k];
                 if (k!='fallthrough') $('#mappings').append('<tr><td>'+k+'</td><td>'+v+'</td></tr>');
             }
+            $('#mappings').append(`
+                <tr><td>Ctrl-I</td><td>Indent more</td></tr>
+                <tr><td>Shift-Ctrl-I</td><td>Indent less</td></tr>
+                <tr><td>Ctrl-Space</td><td>Autocomplete</td></tr>
+            `);
             $('#mode').on('change',function(ev){
                 ed.setOption('mode',this.value);
             });
