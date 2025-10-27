@@ -22,6 +22,7 @@ if ($theme=='dark') {
     <link rel="stylesheet" href="codemirror/theme/shadowfox.css">
     <link rel="stylesheet" href="codemirror/theme/eclipse.css">
     <link rel="stylesheet" href="codemirror/addon/dialog/dialog.css">
+    <link rel="stylesheet" href="codemirror/addon/hint/show-hint.css">
     <script src="codemirror/lib/codemirror.js"></script>
     <script src="codemirror/addon/edit/matchbrackets.js"></script>
     <script src="codemirror/addon/edit/matchtags.js"></script>
@@ -39,6 +40,8 @@ if ($theme=='dark') {
     <script src="codemirror/mode/shell/shell.js"></script>
     <script src="codemirror/mode/diff/diff.js"></script>
     <script src="codemirror/addon/display/rulers.js"></script>
+    <script src="codemirror/addon/hint/show-hint.js"></script>
+    <script src="codemirror/addon/hint/anyword-hint.js"></script>
     <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
     <style>
         .CodeMirror { height: 75vh; font-size: 12px; }
@@ -125,7 +128,8 @@ if (isset($_REQUEST['doIt'])) {
                     },
                     'Shift-Ctrl-I': function(cm){
                         cm.execCommand('indentLess');
-                    }
+                    },
+                    "Ctrl-Space": "autocomplete"
                 },
                 rulers: [{ 
                     column: 80,
