@@ -1,0 +1,12 @@
+{
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/i-scillone/library.git"
+        }
+    ],
+    "require": {
+        "ivan/my_classes": "dev-master",
+        "twbs/bootstrap": "^5.3"
+    }
+}
