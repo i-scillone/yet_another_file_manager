@@ -3,10 +3,15 @@
         {
             "type": "vcs",
             "url": "https://github.com/i-scillone/library.git"
+        },
+        {
+            "type": "composer",
+            "url": "https://asset-packagist.org"
         }
     ],
     "require": {
         "ivan/my_classes": "dev-master",
-        "twbs/bootstrap": "^5.3"
+        "twbs/bootstrap": "^5.3",
+        "npm-asset/jquery": "^4.0"
     }
 }
