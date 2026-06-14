@@ -1,3 +1,8 @@
+<?php
+session_set_cookie_params(21600,dirname($_SERVER['SCRIPT_NAME']));
+session_start();
+session_regenerate_id(true);
+?>
 <!DOCTYPE html>
 <html lang="it" data-bs-theme="dark">
 <head>
@@ -28,7 +33,7 @@
 <?php
 require_once './vendor/autoload.php';
 
-function dirContents(string $p)
+function dirContents(string $p,string $s): void
 {
     echo '<div style="font-weight: bold">'.realpath($p)."</div>\n";
     $d=scandir($p);
@@ -44,8 +49,8 @@ function dirContents(string $p)
         }
         if (is_dir($full)) {
             printf(
-                '<td><a class="dir" data-path="%s" href="#">%s</a></td>',
-                htmlspecialchars($full),htmlspecialchars($f)
+                '<td><a class="dir" data-path="%s" data-side="%s" href="#">%s</a></td>',
+                htmlspecialchars($full),$s,htmlspecialchars($f)
             );
         } else {
             printf('<td>%s</td>',htmlspecialchars($f));
@@ -57,8 +62,22 @@ function dirContents(string $p)
         $inf=null;
     }
 }
+
+if (!isset($_SESSION['l']) || !isset($_SESSION['r'])) {
+    $_SESSION['l']=$_SESSION['r']=getcwd();
+}
 $dbg=new MyClasses\Debug();
 $dbg->log($_REQUEST);
+
+if (isset($_POST['action'])) {
+    switch ($_POST['action']) {
+        case 'goTo':
+            $_SESSION[$_POST['side']]=$_POST['data'];
+            break;
+        default:
+            echo '<div>ACTION NOT SUPPORTED!</div>';
+    }
+}
 ?>
     <div class="container-fluid box-a py-2 flex-shrink-0 border-bottom">
         <strong>Riquadro A</strong><br>
@@ -67,19 +86,16 @@ $dbg->log($_REQUEST);
     <div class="container-fluid flex-grow-1 position-relative p-0" style="min-height: 0;">
         <div class="row g-0 h-100 w-100 position-absolute top-0 start-0">
             <div class="col-6 box-b p-3 scroll-column">
-                <form id="left" action="index.php" method="post">
-                    <input id="action" name="action" type="hidden">
-                </form>
                 <table class="table table-hover">
 <?php
-dirContents('..');
+dirContents($_SESSION['l'],'l');
 ?>
                 </table>
             </div>
             <div class="col-6 box-c p-3 scroll-column">
                 <table class="table table-hover">
 <?php
-dirContents('.');
+dirContents($_SESSION['r'],'r');
 ?>
                 </table>
             </div>
@@ -89,13 +105,20 @@ dirContents('.');
         <strong>Riquadro D</strong><br>
         Questo riquadro è fisso in basso ed è alto e largo esattatemente come il Riquadro A.
     </div>
+    <form id="actionForm" action="index.php" method="post">
+        <input id="side" name="side" type="hidden">
+        <input id="action" name="action" type="hidden">
+        <input id="data" name="data" type="hidden">
+    </form>
     <script src="vendor/twbs/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="vendor/npm-asset/jquery/dist/jquery.min.js"></script>
     <script>
     $('.dir').on('click',function(ev){
-        $('#action').attr('name','goTo');
-        $('#action').val($(this).data('path'));
-        $('#left').submit();
+        let encapsed=$(this);
+        $('#action').val('goTo');
+        $('#data').val(encapsed.data('path'));
+        $('#side').val(encapsed.data('side'));
+        $('#actionForm').submit();
     });
     </script> 
 </body>
