@@ -37,6 +37,9 @@ function dirContents(string $p,string $s): void
 {
     echo '<div style="font-weight: bold">'.realpath($p)."</div>\n";
     $d=scandir($p);
+    if (!in_array('..',$d)) {
+        array_unshift($d,'..');
+    }
     foreach($d as $f) {
         if ($f=='.') continue;
         echo '<tr>';
