@@ -10,6 +10,7 @@ session_regenerate_id(true);
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Layout Bootstrap con Scroll Indipendente</title>
     <link href="vendor/twbs/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="vendor/twbs/bootstrap-icons/font/bootstrap-icons.min.css" rel="stylesheet">
     <style>
         @font-face {
             font-family: Inter;
@@ -27,6 +28,7 @@ session_regenerate_id(true);
             height: 100%;
             overflow-y: auto; /* Attiva la barra di scorrimento verticale solo se serve */
         }
+        .darkBlueBG { background-color: #000080; }
     </style>
 </head>
 <body class="vh-100 d-flex flex-column m-0 overflow-hidden">
@@ -35,7 +37,7 @@ require_once './vendor/autoload.php';
 
 function dirContents(string $p,string $s): void
 {
-    echo '<div class="fw-bold border-bottom">'.realpath($p)."</div>\n";
+    echo '<div class="darkBlueBG">'.realpath($p)."</div>\n";
     echo "<table class='table table-hover'>\n";
     $d=scandir($p);
     if (!in_array('..',$d)) {
@@ -59,8 +61,8 @@ function dirContents(string $p,string $s): void
             );
         } else {
             printf(
-                '<span class="file" data-path="%s">%s</span>',
-                htmlspecialchars($full),htmlspecialchars($f)
+                '<span class="file" data-path="%s" data-side="%s">%s</span>',
+                htmlspecialchars($full),$s,htmlspecialchars($f)
             );
         }
         echo '</td><td>'.$inf->getMode().'</td>';
@@ -83,16 +85,36 @@ if (isset($_POST['action'])) {
         case 'goTo':
             $_SESSION[$_POST['side']]=$_POST['data'];
             break;
+        case 'copy':
+            $feedback=json_encode(pathinfo($_POST['data']));
+            break;
         default:
-            echo '<div>ACTION NOT SUPPORTED!</div>';
+            $feedback='<div class="alert alert-danger">ACTION NOT SUPPORTED!</div>';
     }
 }
 ?>
     <div id="context-menu" class="dropdown-menu" style="position: absolute; display: none;">
-        <a class="dropdown-item" href="#" id="action-1"><i class="bi bi-pencil me-2"></i>Modifica</a>
-        <a class="dropdown-item" href="#" id="action-2"><i class="bi bi-trash me-2"></i>Elimina</a>
+        <a class="dropdown-item" href="#" id="copy"><i class="bi bi-copy me-2"></i>Copia</a>
+        <a class="dropdown-item" href="#" id="move"><i class="bi bi-arrows-move me-2"></i>Sposta</a>
         <div class="dropdown-divider"></div>
-        <a class="dropdown-item" href="#" id="action-3"><i class="bi bi-share me-2"></i>Condividi</a>
+        <a class="dropdown-item" href="#" id="action-3"><i class="bi bi-share me-2"></i>Cambia permessi</a>
+    </div>
+    <div id="copyDialog" class="modal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Modal title</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Modal body text goes here.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary">Save changes</button>
+                </div>
+            </div>
+        </div>
     </div>
     <div class="container-fluid flex-grow-1 position-relative p-0" style="min-height: 0;">
         <div class="row g-0 h-100 w-100 position-absolute top-0 start-0">
@@ -108,10 +130,7 @@ dirContents($_SESSION['r'],'r');
             </div>
         </div>
     </div>
-    <div class="container-fluid box-d py-2 flex-shrink-0 border-top">
-        <strong>Riquadro D</strong><br>
-        Questo riquadro è fisso in basso ed è alto e largo esattatemente come il Riquadro A.
-    </div>
+    <div class="container-fluid box-d py-2 flex-shrink-0"><?= $feedback ?></div>
     <form id="actionForm" action="index.php" method="post">
         <input id="side" name="side" type="hidden">
         <input id="action" name="action" type="hidden">
@@ -120,6 +139,13 @@ dirContents($_SESSION['r'],'r');
     <script src="vendor/twbs/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="vendor/npm-asset/jquery/dist/jquery.min.js"></script>
     <script>
+    function doIt(action,data,side)
+    {
+        $('#action').val(action);
+        $('#data').val(data);
+        $('#side').val(side);
+        $('#actionForm').submit();
+    }
     $('.dir').on('click',function(ev){
         let encapsed=$(this);
         $('#action').val('goTo');
@@ -151,10 +177,9 @@ dirContents($_SESSION['r'],'r');
     });
     $contextMenu.on("click", ".dropdown-item", function(e) {
         e.preventDefault();
-        // Determina quale opzione è stata cliccata
-        const actionId = $(this).attr("id");
-        alert("Hai selezionato l'azione: " + actionId+" su\n"+selectedFile.data('path'));
-        // Nascondi il menù dopo il click
+        const myModalAlternative = new bootstrap.Modal('#copyDialog');
+        myModalAlternative.show();
+        doIt($(this).attr("id"),selectedFile.data('path'),selectedFile.data('side'));
         $contextMenu.hide();
     });
     </script> 
