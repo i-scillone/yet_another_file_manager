@@ -3,7 +3,10 @@ require_once './vendor/autoload.php';
 
 function dirContents(string $path,string $side): void
 {
-    echo '<div class="darkBlueBG">'.realpath($path)."</div>\n";
+    printf(
+        "<input id='%sPath' type='text' value='%s' class='form-control'>",
+        $side,htmlspecialchars(realpath($path))
+    );
     echo "<table class='table table-hover'>\n";
     $d=scandir($path);
     if (!in_array('..',$d)) {
@@ -16,7 +19,7 @@ function dirContents(string $path,string $side): void
         try {
             $inf=new MyClasses\DirEntry($full);
         } catch (Exception $e) {
-            echo "<div>Errore alla riga {$e->getLine()}: «{$e->getMessage()}»</div>\n";
+            echo "<div class='alert alert-danger'>Errore alla riga {$e->getLine()}: «{$e->getMessage()}»</div>\n";
             break;
         }
         echo '<td>';

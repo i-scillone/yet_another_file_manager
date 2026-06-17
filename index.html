@@ -1,14 +1,9 @@
-<?php
-session_set_cookie_params(21600,dirname($_SERVER['SCRIPT_NAME']));
-session_start();
-session_regenerate_id(true);
-?>
 <!DOCTYPE html>
 <html lang="it" data-bs-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Layout Bootstrap con Scroll Indipendente</title>
+    <title>Yet Another File Manager</title>
     <link href="vendor/twbs/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="vendor/twbs/bootstrap-icons/font/bootstrap-icons.min.css" rel="stylesheet">
     <style>
@@ -18,6 +13,7 @@ session_regenerate_id(true);
         }
         body { font-family: Inter; font-variant-numeric: slashed-zero; }
         table { color: inherit; background-color: inherit; }
+        table a { text-decoration: none; }
         /* Forza le colonne ad occupare SOLO l'altezza del loro contenitore e attiva lo scroll */
         .scroll-column {
             position: absolute;
@@ -46,11 +42,14 @@ session_regenerate_id(true);
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <p>Modal body text goes here.</p>
+                    <label for="copyName">Nome</label>
+                    <input id="copyName" type="text" class="form-control">
+                    <label for="copyExt">Estensione</label>
+                    <input id="copyExt" type="text" class="form-control">
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-primary">Save changes</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
+                    <button id="copy-engage" type="button" class="btn btn-primary">OK</button>
                 </div>
             </div>
         </div>
@@ -65,57 +64,71 @@ session_regenerate_id(true);
             </div>
         </div>
     </div>
-    <div class="container-fluid bottomBox py-2 flex-shrink-0"><?= $feedback ?></div>
+    <div class="container-fluid bottomBox py-2 flex-shrink-0 border-top">Status bar</div>
     <script src="vendor/twbs/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="vendor/npm-asset/jquery/dist/jquery.min.js"></script>
     <script>
-    function doIt(action,data,side)
-    {
-        $('#action').val(action);
-        $('#data').val(data);
-        $('#side').val(side);
-        $('#actionForm').submit();
-    }
-    $(document).on('click','.dir',function(ev){
-        console.log('AJAX');
-        ev.preventDefault();
-        let encapsed=$(this);
-        let side=encapsed.data('side');
-        $(`.${side}Box .scroll-column`).load('ajax_server.php',{
-            action: 'goTo',
-            data: encapsed.data('path'),
-            side: side
-        });
-    });
-    // Menù contestuale
-    const $contextMenu = $("#context-menu");
-    let selectedFile = null;
-    $(".dir, .file").on("contextmenu", function(e) {
-        e.preventDefault(); // Blocca il menù del browser
-        e.stopPropagation(); // Evita che l'evento si propaghi a elementi genitori
-        // Ora 'this' è esattamente l'elemento .dir cliccato
-        selectedFile = $(this);
-        // Ottieni le coordinate e mostra il menù
-        const mouseX = e.pageX;
-        const mouseY = e.pageY;
-        $contextMenu.css({
-            top: mouseY + "px",
-            left: mouseX + "px"
-        }).show();
-        console.log(selectedFile.data('path'));
-    });
-    $(document).on("click", function(e) {
-        if (!$(e.target).closest("#context-menu").length) {
-            $contextMenu.hide();
+        function pathInfo(x)
+        {
+            let found=x.match(/^(.*[\/\\])?([^\/\\]+?)(?:\.([^.]+))?$/);
+            let fullName;
+            if (typeof found[3]=='undefined') fullName=found[2];
+            else fullName=found[2]+'.'+found[3];
+            if (found) return { path: found[1], fullName: fullName, name: found[2], ext: found[3] };
+            else return false;
         }
-    });
-    $contextMenu.on("click", ".dropdown-item", function(e) {
-        e.preventDefault();
-        const myModalAlternative = new bootstrap.Modal('#copyDialog');
-        myModalAlternative.show();
-        doIt($(this).attr("id"),selectedFile.data('path'),selectedFile.data('side'));
-        $contextMenu.hide();
-    });
+        $( '.leftBox .scroll-column').load('ajax_server.php',{action:'goTo',data:'.',side:'left'});
+        $('.rightBox .scroll-column').load('ajax_server.php',{action:'goTo',data:'.',side:'right'});
+        $(document).on('click','.dir',function(ev){
+            ev.preventDefault();
+            let encapsed=$(this);
+            let side=encapsed.data('side');
+            $(`.${side}Box .scroll-column`).load('ajax_server.php',{
+                action: 'goTo',
+                data: encapsed.data('path'),
+                side: side
+            });
+        });
+        // Menù contestuale
+        const $contextMenu = $("#context-menu");
+        let selectedFile = null;
+        $(document).on("contextmenu",".dir, .file",function(e) {
+            e.preventDefault(); // Blocca il menù del browser
+            e.stopPropagation(); // Evita che l'evento si propaghi a elementi genitori
+            // Ora 'this' è esattamente l'elemento .dir cliccato
+            selectedFile = $(this);
+            // Ottieni le coordinate e mostra il menù
+            const mouseX = e.pageX;
+            const mouseY = e.pageY;
+            $contextMenu.css({
+                top: mouseY + "px",
+                left: mouseX + "px"
+            }).show();
+        });
+        $(document).on("click", function(e) {
+            if (!$(e.target).closest("#context-menu").length) {
+                $contextMenu.hide();
+            }
+        });
+        let myModalAlternative;
+        $contextMenu.on("click", ".dropdown-item", function(e) {
+            e.preventDefault();
+            let inf=pathInfo(selectedFile.data('path'));
+            let dest;
+            if (selectedFile.data('side')=='left') dest='#rightPath';
+            else dest='#leftPath';
+            $('#copyDialog .modal-title').text('Copia in '+$(dest).val());
+            $('#copyDialog #copyName').val(inf.name);
+            $('#copyDialog #copyExt').val(inf.ext);
+            myModalAlternative = new bootstrap.Modal('#copyDialog');
+            myModalAlternative.show();
+            $contextMenu.hide();
+        });
+        $(document).on('click','#copy-engage',(ev)=>{
+            console.log($('#copyDialog #copyName').val());
+            console.log($('#copyDialog #copyExt').val());
+            myModalAlternative.hide();
+        });
     </script> 
 </body>
 </html>
