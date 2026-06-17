@@ -17,82 +17,21 @@ session_regenerate_id(true);
             src: url(InterVariable.woff2) format(woff2);
         }
         body { font-family: Inter; font-variant-numeric: slashed-zero; }
-        /* Stili temporanei per i colori dei riquadri 
-        .box-a, .box-d { background-color: #8899ff; }
-        .box-b { color: #cc99ff; #background-color: black; }
-        .box-c { background-color: black; }
         table { color: inherit; background-color: inherit; }
-        */
-        /* Forza le colonne ad occupare il 100% dell'altezza del loro contenitore */
+        /* Forza le colonne ad occupare SOLO l'altezza del loro contenitore e attiva lo scroll */
         .scroll-column {
-            height: 100%;
-            overflow-y: auto; /* Attiva la barra di scorrimento verticale solo se serve */
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            overflow-y: auto; /* Attiva la barra solo se serve */
+            padding: 1rem;    /* Ripristina il padding p-3 di bootstrap che viene gestito meglio qui */
         }
-        .darkBlueBG { background-color: #000080; }
+        /* Serve a dare un posizionamento relativo ai due blocchi principali */
     </style>
 </head>
 <body class="vh-100 d-flex flex-column m-0 overflow-hidden">
-<?php
-require_once './vendor/autoload.php';
-
-function dirContents(string $p,string $s): void
-{
-    echo '<div class="darkBlueBG">'.realpath($p)."</div>\n";
-    echo "<table class='table table-hover'>\n";
-    $d=scandir($p);
-    if (!in_array('..',$d)) {
-        array_unshift($d,'..');
-    }
-    foreach($d as $f) {
-        if ($f=='.') continue;
-        echo '<tr>';
-        $full=realpath($p.DIRECTORY_SEPARATOR.$f);
-        try {
-            $inf=new MyClasses\DirEntry($full);
-        } catch (Exception $e) {
-            echo "<div>Errore alla riga {$e->getLine()}: «{$e->getMessage()}»</div>\n";
-            break;
-        }
-        echo '<td>';
-        if (is_dir($full)) {
-            printf(
-                '<a class="dir" data-path="%s" data-side="%s" href="#">%s</a>',
-                htmlspecialchars($full),$s,htmlspecialchars($f)
-            );
-        } else {
-            printf(
-                '<span class="file" data-path="%s" data-side="%s">%s</span>',
-                htmlspecialchars($full),$s,htmlspecialchars($f)
-            );
-        }
-        echo '</td><td>'.$inf->getMode().'</td>';
-        echo "<td>{$inf->getSize()}</td>";
-        echo "<td>{$inf->getTime()}</td>";
-        echo "</tr>\n";
-        $inf=null;
-    }
-    echo "</table>\n";
-}
-
-if (!isset($_SESSION['l']) || !isset($_SESSION['r'])) {
-    $_SESSION['l']=$_SESSION['r']=getcwd();
-}
-$dbg=new MyClasses\Debug();
-$dbg->log($_REQUEST);
-
-if (isset($_POST['action'])) {
-    switch ($_POST['action']) {
-        case 'goTo':
-            $_SESSION[$_POST['side']]=$_POST['data'];
-            break;
-        case 'copy':
-            $feedback=json_encode(pathinfo($_POST['data']));
-            break;
-        default:
-            $feedback='<div class="alert alert-danger">ACTION NOT SUPPORTED!</div>';
-    }
-}
-?>
     <div id="context-menu" class="dropdown-menu" style="position: absolute; display: none;">
         <a class="dropdown-item" href="#" id="copy"><i class="bi bi-copy me-2"></i>Copia</a>
         <a class="dropdown-item" href="#" id="move"><i class="bi bi-arrows-move me-2"></i>Sposta</a>
@@ -118,24 +57,15 @@ if (isset($_POST['action'])) {
     </div>
     <div class="container-fluid flex-grow-1 position-relative p-0" style="min-height: 0;">
         <div class="row g-0 h-100 w-100 position-absolute top-0 start-0">
-            <div class="col-6 box-b p-3 scroll-column">
-<?php
-dirContents($_SESSION['l'],'l');
-?>
+            <div class="col-6 leftBox position-relative h-100">
+                <div class="scroll-column">..</div>
             </div>
-            <div class="col-6 box-c p-3 scroll-column">
-<?php
-dirContents($_SESSION['r'],'r');
-?>
+            <div class="col-6 rightBox position-relative h-100">
+                <div class="scroll-column">..</div>
             </div>
         </div>
     </div>
-    <div class="container-fluid box-d py-2 flex-shrink-0"><?= $feedback ?></div>
-    <form id="actionForm" action="index.php" method="post">
-        <input id="side" name="side" type="hidden">
-        <input id="action" name="action" type="hidden">
-        <input id="data" name="data" type="hidden">
-    </form>
+    <div class="container-fluid bottomBox py-2 flex-shrink-0"><?= $feedback ?></div>
     <script src="vendor/twbs/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="vendor/npm-asset/jquery/dist/jquery.min.js"></script>
     <script>
@@ -146,12 +76,16 @@ dirContents($_SESSION['r'],'r');
         $('#side').val(side);
         $('#actionForm').submit();
     }
-    $('.dir').on('click',function(ev){
+    $(document).on('click','.dir',function(ev){
+        console.log('AJAX');
+        ev.preventDefault();
         let encapsed=$(this);
-        $('#action').val('goTo');
-        $('#data').val(encapsed.data('path'));
-        $('#side').val(encapsed.data('side'));
-        $('#actionForm').submit();
+        let side=encapsed.data('side');
+        $(`.${side}Box .scroll-column`).load('ajax_server.php',{
+            action: 'goTo',
+            data: encapsed.data('path'),
+            side: side
+        });
     });
     // Menù contestuale
     const $contextMenu = $("#context-menu");
