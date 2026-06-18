@@ -34,18 +34,20 @@
         <div class="dropdown-divider"></div>
         <a class="dropdown-item" href="#" id="action-3"><i class="bi bi-share me-2"></i>Cambia permessi</a>
     </div>
-    <div id="copyDialog" class="modal" tabindex="-1">
+    <div id="copy-dialog" class="modal" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Modal title</h5>
+                    <h5 class="modal-title">Copia</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <label for="copyName">Nome</label>
-                    <input id="copyName" type="text" class="form-control">
-                    <label for="copyExt">Estensione</label>
-                    <input id="copyExt" type="text" class="form-control">
+                    <label for="copy-dest">Destinazione</label>
+                    <input id="copy-dest" type="text" class="form-control">
+                    <label for="copy-name">Nome</label>
+                    <input id="copy-name" type="text" class="form-control">
+                    <label for="copy-ext">Estensione</label>
+                    <input id="copy-ext" type="text" class="form-control">
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
@@ -76,6 +78,15 @@
             else fullName=found[2]+'.'+found[3];
             if (found) return { path: found[1], fullName: fullName, name: found[2], ext: found[3] };
             else return false;
+        }
+        let otherSide;
+        function setOtherSide(x)
+        {
+            let side=(x.data('side')=='left')? 'right': 'left';
+            otherSide={
+                path: $('#path-'+side).val(),
+                side: side
+            };
         }
         $( '.leftBox .scroll-column').load('ajax_server.php',{action:'goTo',data:'.',side:'left'});
         $('.rightBox .scroll-column').load('ajax_server.php',{action:'goTo',data:'.',side:'right'});
@@ -110,24 +121,34 @@
                 $contextMenu.hide();
             }
         });
-        let myModalAlternative;
+        let copyDialog;
         $contextMenu.on("click", ".dropdown-item", function(e) {
             e.preventDefault();
             let inf=pathInfo(selectedFile.data('path'));
-            let dest;
-            if (selectedFile.data('side')=='left') dest='#rightPath';
-            else dest='#leftPath';
-            $('#copyDialog .modal-title').text('Copia in '+$(dest).val());
-            $('#copyDialog #copyName').val(inf.name);
-            $('#copyDialog #copyExt').val(inf.ext);
-            myModalAlternative = new bootstrap.Modal('#copyDialog');
-            myModalAlternative.show();
+            setOtherSide(selectedFile);
+            $('#copy-dialog #copy-dest').val(otherSide.path);
+            $('#copy-dialog #copy-name').val(inf.name);
+            $('#copy-dialog #copy-ext').val(inf.ext);
+            copyDialog = new bootstrap.Modal('#copy-dialog');
+            copyDialog.show();
             $contextMenu.hide();
         });
         $(document).on('click','#copy-engage',(ev)=>{
-            console.log($('#copyDialog #copyName').val());
-            console.log($('#copyDialog #copyExt').val());
-            myModalAlternative.hide();
+            console.log(selectedFile);
+            console.log($('#copy-dialog #copy-name').val());
+            console.log($('#copy-dialog #copy-ext').val());
+            console.log(otherSide.side);
+            $('.'+otherSide.side+'Box').load(
+                'ajax_server',
+                {
+                    action: 'copy',
+                    data: {
+                        from: selectedFile.data('path'),
+                        to: otherSide.path+'/'+$('#copy-name').val()+$('#copy-ext').val()
+                    }
+                }
+            );
+            copyDialog.hide();
         });
     </script> 
 </body>

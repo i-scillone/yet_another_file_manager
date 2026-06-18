@@ -4,7 +4,7 @@ require_once './vendor/autoload.php';
 function dirContents(string $path,string $side): void
 {
     printf(
-        "<input id='%sPath' type='text' value='%s' class='form-control'>",
+        "<input id='path-%s' type='text' value='%s' class='form-control'>",
         $side,htmlspecialchars(realpath($path))
     );
     echo "<table class='table table-hover'>\n";
