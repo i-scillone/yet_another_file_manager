@@ -44,11 +44,11 @@ function dirContents(string $path,string $side): void
 }
 
 $dbg=new MyClasses\Debug();
-$dbg->log($_REQUEST);
+$dbg->log($_POST);
 switch ($_POST['action']) {
     case 'goTo':
         dirContents($_POST['data'],$_POST['side']);
         break;
     default:
-        echo "<div class='alert alert-warning'>Azione non implementata!</div>\n";
+        echo "<div class='alert alert-danger'>Azione non implementata!</div>\n";
 }

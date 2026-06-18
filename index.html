@@ -42,8 +42,6 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <label for="copy-dest">Destinazione</label>
-                    <input id="copy-dest" type="text" class="form-control">
                     <label for="copy-name">Nome</label>
                     <input id="copy-name" type="text" class="form-control">
                     <label for="copy-ext">Estensione</label>
@@ -126,7 +124,7 @@
             e.preventDefault();
             let inf=pathInfo(selectedFile.data('path'));
             setOtherSide(selectedFile);
-            $('#copy-dialog #copy-dest').val(otherSide.path);
+            $('#copy-dialog .modal-title').text('Copia su '+otherSide.path);
             $('#copy-dialog #copy-name').val(inf.name);
             $('#copy-dialog #copy-ext').val(inf.ext);
             copyDialog = new bootstrap.Modal('#copy-dialog');
@@ -139,13 +137,11 @@
             console.log($('#copy-dialog #copy-ext').val());
             console.log(otherSide.side);
             $('.'+otherSide.side+'Box').load(
-                'ajax_server',
+                'ajax_server.php',
                 {
                     action: 'copy',
-                    data: {
-                        from: selectedFile.data('path'),
-                        to: otherSide.path+'/'+$('#copy-name').val()+$('#copy-ext').val()
-                    }
+                    from: selectedFile.data('path'),
+                    to: otherSide.path+'/'+$('#copy-name').val()+$('#copy-ext').val()
                 }
             );
             copyDialog.hide();
