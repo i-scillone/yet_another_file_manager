@@ -83,17 +83,17 @@
             let side=(x.data('side')=='left')? 'right': 'left';
             otherSide={
                 path: $('#path-'+side).val(),
-                side: side
+                side: side,
+                class: `.${side}Box`
             };
         }
-        $( '.leftBox .scroll-column').load('list.php',{action:'goTo',data:'.',side:'left'});
-        $('.rightBox .scroll-column').load('list.php',{action:'goTo',data:'.',side:'right'});
+        $( '.leftBox .scroll-column').load('list.php',{data:'.',side:'left'});
+        $('.rightBox .scroll-column').load('list.php',{data:'.',side:'right'});
         $(document).on('click','.dir',function(ev){
             ev.preventDefault();
             let encapsed=$(this);
             let side=encapsed.data('side');
             $(`.${side}Box .scroll-column`).load('list.php',{
-                action: 'goTo',
                 data: encapsed.data('path'),
                 side: side
             });
@@ -136,12 +136,21 @@
             console.log($('#copy-dialog #copy-name').val());
             console.log($('#copy-dialog #copy-ext').val());
             console.log(otherSide.side);
-            $('.'+otherSide.side+'Box').load(
+            $.getJSON(
                 'ajax_server.php',
                 {
                     action: 'copy',
                     from: selectedFile.data('path'),
-                    to: otherSide.path+'/'+$('#copy-name').val()+$('#copy-ext').val()
+                    to: otherSide.path+'/'+$('#copy-name').val()+'.'+$('#copy-ext').val()
+                },
+                function(x){
+                    if (!x.ok) {
+                        $('.'+otherSide.side+'Box').html(x.data);
+                    } else {
+                        $('.'+otherSide.side+'Box .scroll-column').load(
+                            'list.php',{data:otherSide.path,side:otherSide.side}
+                        );
+                    }
                 }
             );
             copyDialog.hide();
