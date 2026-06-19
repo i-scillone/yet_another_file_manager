@@ -86,13 +86,13 @@
                 side: side
             };
         }
-        $( '.leftBox .scroll-column').load('ajax_server.php',{action:'goTo',data:'.',side:'left'});
-        $('.rightBox .scroll-column').load('ajax_server.php',{action:'goTo',data:'.',side:'right'});
+        $( '.leftBox .scroll-column').load('list.php',{action:'goTo',data:'.',side:'left'});
+        $('.rightBox .scroll-column').load('list.php',{action:'goTo',data:'.',side:'right'});
         $(document).on('click','.dir',function(ev){
             ev.preventDefault();
             let encapsed=$(this);
             let side=encapsed.data('side');
-            $(`.${side}Box .scroll-column`).load('ajax_server.php',{
+            $(`.${side}Box .scroll-column`).load('list.php',{
                 action: 'goTo',
                 data: encapsed.data('path'),
                 side: side
