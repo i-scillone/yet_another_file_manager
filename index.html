@@ -46,6 +46,8 @@
                     <input id="copy-name" type="text" class="form-control">
                     <label for="copy-ext">Estensione</label>
                     <input id="copy-ext" type="text" class="form-control">
+                    <input id="copy-overwrite" type="checkbox" class="from-check-input">
+                    <label for="copy-overwite" class="from-check-label">Sovrascrivi</label>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
@@ -132,20 +134,17 @@
             $contextMenu.hide();
         });
         $(document).on('click','#copy-engage',(ev)=>{
-            console.log(selectedFile);
-            console.log($('#copy-dialog #copy-name').val());
-            console.log($('#copy-dialog #copy-ext').val());
-            console.log(otherSide.side);
             $.getJSON(
                 'ajax_server.php',
                 {
                     action: 'copy',
                     from: selectedFile.data('path'),
-                    to: otherSide.path+'/'+$('#copy-name').val()+'.'+$('#copy-ext').val()
+                    to: otherSide.path+'/'+$('#copy-name').val()+'.'+$('#copy-ext').val(),
+                    overwrite: $('#copy-overwrite').prop('checked')
                 },
                 function(x){
                     if (!x.ok) {
-                        $('.'+otherSide.side+'Box').html(x.data);
+                        $('.bottomBox').html(x.data);
                     } else {
                         $('.'+otherSide.side+'Box .scroll-column').load(
                             'list.php',{data:otherSide.path,side:otherSide.side}
