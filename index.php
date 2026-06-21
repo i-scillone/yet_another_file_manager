@@ -31,8 +31,24 @@
     <div id="context-menu" class="dropdown-menu" style="position: absolute; display: none;">
         <a class="dropdown-item" href="#" id="copy"><i class="bi bi-copy me-2"></i>Copia</a>
         <a class="dropdown-item" href="#" id="move"><i class="bi bi-arrows-move me-2"></i>Sposta</a>
+        <a class="dropdown-item" href="#" id="delete"><i class="bi bi-trash"></i>Cancella</a>
         <div class="dropdown-divider"></div>
         <a class="dropdown-item" href="#" id="action-3"><i class="bi bi-share me-2"></i>Cambia permessi</a>
+    </div>
+    <div id="confirm-dialog" class="modal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Conferma</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">Sei sicuro?</div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No</button>
+                    <button id="confirm-yes" type="button" class="btn btn-primary">Sì</button>
+                </div>
+            </div>
+        </div>
     </div>
     <div id="copy-dialog" class="modal" tabindex="-1">
         <div class="modal-dialog">
@@ -70,6 +86,27 @@
     <script src="vendor/twbs/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="vendor/npm-asset/jquery/dist/jquery.min.js"></script>
     <script>
+        <?php printf("const DIR_SEP='%s';\n",addslashes(DIRECTORY_SEPARATOR)); ?>
+        const state={
+            action: null,
+            selectedFile: null,
+            otherSide: null,
+            dialog: null,
+            setSelectedFile(x) {
+                this.selectedFile={
+                    path: x.data('path'),
+                    side: x.data('side')
+                };
+            },
+            setOtherSide() {
+                let side = (this.selectedFile.side == 'left') ? 'right' : 'left';
+                this.otherSide={
+                    path: $('#path-'+side).val(),
+                    side: side,
+                    class: `.${side}Box`
+                };
+            }
+        };
         function pathInfo(x)
         {
             let found=x.match(/^(.*[\/\\])?([^\/\\]+?)(?:\.([^.]+))?$/);
@@ -78,16 +115,6 @@
             else fullName=found[2]+'.'+found[3];
             if (found) return { path: found[1], fullName: fullName, name: found[2], ext: found[3] };
             else return false;
-        }
-        let otherSide;
-        function setOtherSide(x)
-        {
-            let side=(x.data('side')=='left')? 'right': 'left';
-            otherSide={
-                path: $('#path-'+side).val(),
-                side: side,
-                class: `.${side}Box`
-            };
         }
         $( '.leftBox .scroll-column').load('list.php',{data:'.',side:'left'});
         $('.rightBox .scroll-column').load('list.php',{data:'.',side:'right'});
@@ -101,58 +128,70 @@
             });
         });
         // Menù contestuale
-        const $contextMenu = $("#context-menu");
-        let selectedFile = null;
+        const contextMenu = $("#context-menu");
         $(document).on("contextmenu",".dir, .file",function(e) {
             e.preventDefault(); // Blocca il menù del browser
             e.stopPropagation(); // Evita che l'evento si propaghi a elementi genitori
             // Ora 'this' è esattamente l'elemento .dir cliccato
-            selectedFile = $(this);
+            state.setSelectedFile($(this));
             // Ottieni le coordinate e mostra il menù
             const mouseX = e.pageX;
             const mouseY = e.pageY;
-            $contextMenu.css({
+            contextMenu.css({
                 top: mouseY + "px",
                 left: mouseX + "px"
             }).show();
         });
         $(document).on("click", function(e) {
             if (!$(e.target).closest("#context-menu").length) {
-                $contextMenu.hide();
+                contextMenu.hide();
             }
         });
-        let copyDialog;
-        $contextMenu.on("click", ".dropdown-item", function(e) {
+        contextMenu.on("click", ".dropdown-item", function(e) {
             e.preventDefault();
-            let inf=pathInfo(selectedFile.data('path'));
-            setOtherSide(selectedFile);
-            $('#copy-dialog .modal-title').text('Copia su '+otherSide.path);
-            $('#copy-dialog #copy-name').val(inf.name);
-            $('#copy-dialog #copy-ext').val(inf.ext);
-            copyDialog = new bootstrap.Modal('#copy-dialog');
-            copyDialog.show();
-            $contextMenu.hide();
+            let inf=pathInfo(state.selectedFile.path);
+            state.setOtherSide();
+            state.action=this.id;
+            switch (state.action) {
+                case 'copy':
+                    $('#copy-dialog .modal-title').text('Copia su '+state.otherSide.path);
+                    $('#copy-dialog #copy-name').val(inf.name);
+                    $('#copy-dialog #copy-ext').val(inf.ext);
+                    state.dialog = new bootstrap.Modal('#copy-dialog');
+                    state.dialog.show();
+                    break;
+                case 'delete':
+                    $('#confirm-dialog .modal-body').html('Sei sicuro di voler cancellare '+state.selectedFile.data('path')+'?');
+                    state.dialog=new bootstrap.Modal('#confirm-dialog');
+                    state.dialog.show();
+                    break;
+            }
+            contextMenu.hide();
         });
         $(document).on('click','#copy-engage',(ev)=>{
             $.getJSON(
                 'ajax_server.php',
                 {
                     action: 'copy',
-                    from: selectedFile.data('path'),
-                    to: otherSide.path+'/'+$('#copy-name').val()+'.'+$('#copy-ext').val(),
+                    from: state.selectedFile.path,
+                    to: state.otherSide.path+DIR_SEP+$('#copy-name').val()+'.'+$('#copy-ext').val(),
                     overwrite: $('#copy-overwrite').prop('checked')
                 },
                 function(x){
                     if (!x.ok) {
                         $('.bottomBox').html(x.data);
                     } else {
-                        $('.'+otherSide.side+'Box .scroll-column').load(
-                            'list.php',{data:otherSide.path,side:otherSide.side}
+                        $('.'+state.otherSide.side+'Box .scroll-column').load(
+                            'list.php',{data:state.otherSide.path,side:state.otherSide.side}
                         );
                     }
                 }
             );
-            copyDialog.hide();
+            state.dialog.hide();
+        });
+        $(document).on('click','#confirm-yes',(ev)=>{
+            console.log(state.selectedFile);
+            state.dialog.hide();
         });
     </script> 
 </body>
