@@ -99,6 +99,15 @@ if (!isset($_SESSION['left']) || !isset($_SESSION['right'])) {
         printf("const DIR_SEP='%s';\n",addslashes(DIRECTORY_SEPARATOR));
         printf("const SESSION=%s;\n",json_encode($_SESSION));
         ?>
+        function pathInfo(x)
+        {
+            let found=x.match(/^(.*[\/\\])?([^\/\\]+?)(?:\.([^.]+))?$/);
+            let fullName;
+            if (typeof found[3]=='undefined') fullName=found[2];
+            else fullName=found[2]+'.'+found[3];
+            if (found) return { path: found[1], fullName: fullName, name: found[2], ext: found[3] };
+            else return false;
+        }
         const state={
             action: null,
             selectedFile: null,
@@ -106,7 +115,8 @@ if (!isset($_SESSION['left']) || !isset($_SESSION['right'])) {
             dialog: null,
             setSelectedFile(x) {
                 this.selectedFile={
-                    path: x.data('path'),
+                    inf: pathInfo(x.data('path')),
+                    file: x.data('path'),
                     side: x.data('side')
                 };
             },
@@ -119,15 +129,7 @@ if (!isset($_SESSION['left']) || !isset($_SESSION['right'])) {
                 };
             }
         };
-        function pathInfo(x)
-        {
-            let found=x.match(/^(.*[\/\\])?([^\/\\]+?)(?:\.([^.]+))?$/);
-            let fullName;
-            if (typeof found[3]=='undefined') fullName=found[2];
-            else fullName=found[2]+'.'+found[3];
-            if (found) return { path: found[1], fullName: fullName, name: found[2], ext: found[3] };
-            else return false;
-        }
+
         $( '.leftBox .scroll-column').load('list.php',{ data:SESSION.left, side:'left' });
         $('.rightBox .scroll-column').load('list.php',{ data:SESSION.right, side:'right' });
         $(document).on('click','.dir',function(ev){
@@ -161,20 +163,26 @@ if (!isset($_SESSION['left']) || !isset($_SESSION['right'])) {
         });
         contextMenu.on("click", ".dropdown-item", function(e) {
             e.preventDefault();
-            let inf=pathInfo(state.selectedFile.path);
             state.setOtherSide();
             state.action=this.id;
             switch (state.action) {
                 case 'copy':
                     $('#copy-dialog .modal-title').text('Copia su '+state.otherSide.path);
-                    $('#copy-dialog #copy-name').val(inf.name);
-                    $('#copy-dialog #copy-ext').val(inf.ext);
+                    $('#copy-dialog #copy-name').val(state.selectedFile.inf.name);
+                    $('#copy-dialog #copy-ext').val(state.selectedFile.inf.ext);
                     state.dialog = new bootstrap.Modal('#copy-dialog');
                     state.dialog.show();
                     break;
                 case 'delete':
-                    $('#confirm-dialog .modal-body').html('Sei sicuro di voler cancellare <mark>'+state.selectedFile.path+'</mark>?');
+                    $('#confirm-dialog .modal-body').html('Sei sicuro di voler cancellare <mark>'+state.selectedFile.file+'</mark>?');
                     state.dialog=new bootstrap.Modal('#confirm-dialog');
+                    state.dialog.show();
+                    break;
+                case 'move':
+                    $('#copy-dialog .modal-title').text('Sposta su '+state.otherSide.path);
+                    $('#copy-dialog #copy-name').val(state.selectedFile.inf.name);
+                    $('#copy-dialog #copy-ext').val(state.selectedFile.inf.ext);
+                    state.dialog = new bootstrap.Modal('#copy-dialog');
                     state.dialog.show();
                     break;
             }
@@ -184,8 +192,8 @@ if (!isset($_SESSION['left']) || !isset($_SESSION['right'])) {
             $.getJSON(
                 'ajax_server.php',
                 {
-                    action: 'copy',
-                    from: state.selectedFile.path,
+                    action: state.action,
+                    from: state.selectedFile.file,
                     to: state.otherSide.path+DIR_SEP+$('#copy-name').val()+'.'+$('#copy-ext').val(),
                     overwrite: $('#copy-overwrite').prop('checked')
                 },
@@ -196,6 +204,11 @@ if (!isset($_SESSION['left']) || !isset($_SESSION['right'])) {
                         $('.'+state.otherSide.side+'Box .scroll-column').load(
                             'list.php',{data:state.otherSide.path,side:state.otherSide.side}
                         );
+                        if (state.action=='move') {
+                            $('.'+state.selectedFile.side+'Box .scroll-column').load(
+                                'list.php',{data:state.selectedFile.inf.path,side:state.selectedFile.side}
+                            );
+                        }
                     }
                 }
             );
@@ -206,16 +219,15 @@ if (!isset($_SESSION['left']) || !isset($_SESSION['right'])) {
                 'ajax_server.php',
                 {
                     action: 'delete',
-                    file: state.selectedFile.path
+                    file: state.selectedFile.file
                 },
                 function(x){
                     if (!x.ok) {
                         $('.bottomBox').html(x.data);
                     } else {
                         console.log(state);
-                        let inf=pathInfo(state.selectedFile.path);
                         $('.'+state.selectedFile.side+'Box .scroll-column').load(
-                            'list.php',{data:inf.path,side:state.selectedFile.side}
+                            'list.php',{data:state.selectedFile.inf.path,side:state.selectedFile.side}
                         );
                     }
                 }
