@@ -1,6 +1,7 @@
 <?php
 header('Content-Type: application/json');
 require_once './vendor/autoload.php';
+define('ALERT_TEMPLATE','<div class="alert alert-warning alert-dismissible fade show">%s<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>');
 class Result
 {
     public bool $ok;
@@ -24,12 +25,16 @@ switch ($_GET['action'] ?? false) {
     case 'copy':
         $overwrite = filter_var($_GET['overwrite'] ?? false, FILTER_VALIDATE_BOOLEAN);
         if (file_exists($_GET['to']) && !$overwrite) {
-            $r->data='<div class="alert alert-warning alert-dismissible fade show">Il file esiste già!<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>';
+            $r->data=sprintf(ALERT_TEMPLATE,'Il file esiste già!');
         } else {
             $r->ok=copy($_GET['from'],$_GET['to']);
         }
         break;
+    case 'delete':
+        $r->ok=unlink($_GET['file']);
+        if (!$r->ok) $r->data=sprintf(ALERT_TEMPLATE,'Impossibile cancellare il file!');
+        break;
     default:
-        $r->data='<div class="alert alert-danger">Azione non implementata!</div>';
+        $r->data=sprintf(ALERT_TEMPLATE,'Azione non implementata!');
 }
 echo $r;

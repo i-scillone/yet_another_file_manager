@@ -1,3 +1,7 @@
+<?php
+session_set_cookie_params(3600,'/yafm');
+session_start();
+?>
 <!DOCTYPE html>
 <html lang="it" data-bs-theme="dark">
 <head>
@@ -161,7 +165,7 @@
                     state.dialog.show();
                     break;
                 case 'delete':
-                    $('#confirm-dialog .modal-body').html('Sei sicuro di voler cancellare '+state.selectedFile.data('path')+'?');
+                    $('#confirm-dialog .modal-body').html('Sei sicuro di voler cancellare '+state.selectedFile.path+'?');
                     state.dialog=new bootstrap.Modal('#confirm-dialog');
                     state.dialog.show();
                     break;
@@ -190,7 +194,22 @@
             state.dialog.hide();
         });
         $(document).on('click','#confirm-yes',(ev)=>{
-            console.log(state.selectedFile);
+            $.getJSON(
+                'ajax_server.php',
+                {
+                    action: 'delete',
+                    file: state.selectedFile.path
+                },
+                function(x){
+                    if (!x.ok) {
+                        $('.bottomBox').html(x.data);
+                    } else {
+                        $('.'+state.selectedFile.side+'Box .scroll-column').load(
+                            'list.php',{data:state.selectedFile.path,side:state.selectedFile.side}
+                        );
+                    }
+                }
+            );
             state.dialog.hide();
         });
     </script> 
