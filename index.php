@@ -40,9 +40,9 @@ if (!isset($_SESSION['left']) || !isset($_SESSION['right'])) {
     <div id="context-menu" class="dropdown-menu" style="position: absolute; display: none;">
         <a class="dropdown-item" href="#" id="copy"><i class="bi bi-copy me-2"></i>Copia</a>
         <a class="dropdown-item" href="#" id="move"><i class="bi bi-arrows-move me-2"></i>Sposta</a>
-        <a class="dropdown-item" href="#" id="delete"><i class="bi bi-trash"></i>Cancella</a>
+        <a class="dropdown-item" href="#" id="delete"><i class="bi bi-trash me-2"></i>Cancella</a>
         <div class="dropdown-divider"></div>
-        <a class="dropdown-item" href="#" id="action-3"><i class="bi bi-share me-2"></i>Cambia permessi</a>
+        <a class="dropdown-item" href="#" id="refresh"><i class="bi bi-arrow-clockwise me-2"></i>Rileggi la dir.</a>
     </div>
     <div id="confirm-dialog" class="modal" tabindex="-1">
         <div class="modal-dialog">
@@ -185,6 +185,11 @@ if (!isset($_SESSION['left']) || !isset($_SESSION['right'])) {
                     state.dialog = new bootstrap.Modal('#copy-dialog');
                     state.dialog.show();
                     break;
+                case 'refresh':
+                        $('.'+state.selectedFile.side+'Box .scroll-column').load(
+                            'list.php',{data:state.selectedFile.inf.path,side:state.selectedFile.side}
+                        );
+                        break;
             }
             contextMenu.hide();
         });
@@ -225,7 +230,6 @@ if (!isset($_SESSION['left']) || !isset($_SESSION['right'])) {
                     if (!x.ok) {
                         $('.bottomBox').html(x.data);
                     } else {
-                        console.log(state);
                         $('.'+state.selectedFile.side+'Box .scroll-column').load(
                             'list.php',{data:state.selectedFile.inf.path,side:state.selectedFile.side}
                         );
