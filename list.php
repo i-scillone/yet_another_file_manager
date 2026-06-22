@@ -1,4 +1,6 @@
 <?php
+session_set_cookie_params(3600,'/yafm');
+session_start();
 require_once './vendor/autoload.php';
 
 function dirContents(string $path,string $side): void
@@ -46,4 +48,5 @@ function dirContents(string $path,string $side): void
 $dbg=new MyClasses\Debug();
 $dbg->log($_POST);
 dirContents($_POST['data'],$_POST['side']);
+$_SESSION[$_POST['side']]=$_POST['data'];
 

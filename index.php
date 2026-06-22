@@ -1,6 +1,11 @@
 <?php
 session_set_cookie_params(3600,'/yafm');
 session_start();
+require_once 'vendor/autoload.php';
+$dbg=new MyClasses\Debug();
+if (!isset($_SESSION['left']) || !isset($_SESSION['right'])) {
+    $_SESSION=['left'=>'.','right'=>'.'];
+}
 ?>
 <!DOCTYPE html>
 <html lang="it" data-bs-theme="dark">
@@ -90,7 +95,10 @@ session_start();
     <script src="vendor/twbs/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="vendor/npm-asset/jquery/dist/jquery.min.js"></script>
     <script>
-        <?php printf("const DIR_SEP='%s';\n",addslashes(DIRECTORY_SEPARATOR)); ?>
+        <?php 
+        printf("const DIR_SEP='%s';\n",addslashes(DIRECTORY_SEPARATOR));
+        printf("const SESSION=%s;\n",json_encode($_SESSION));
+        ?>
         const state={
             action: null,
             selectedFile: null,
@@ -120,8 +128,8 @@ session_start();
             if (found) return { path: found[1], fullName: fullName, name: found[2], ext: found[3] };
             else return false;
         }
-        $( '.leftBox .scroll-column').load('list.php',{data:'.',side:'left'});
-        $('.rightBox .scroll-column').load('list.php',{data:'.',side:'right'});
+        $( '.leftBox .scroll-column').load('list.php',{ data:SESSION.left, side:'left' });
+        $('.rightBox .scroll-column').load('list.php',{ data:SESSION.right, side:'right' });
         $(document).on('click','.dir',function(ev){
             ev.preventDefault();
             let encapsed=$(this);
@@ -165,7 +173,7 @@ session_start();
                     state.dialog.show();
                     break;
                 case 'delete':
-                    $('#confirm-dialog .modal-body').html('Sei sicuro di voler cancellare '+state.selectedFile.path+'?');
+                    $('#confirm-dialog .modal-body').html('Sei sicuro di voler cancellare <mark>'+state.selectedFile.path+'</mark>?');
                     state.dialog=new bootstrap.Modal('#confirm-dialog');
                     state.dialog.show();
                     break;
@@ -204,8 +212,10 @@ session_start();
                     if (!x.ok) {
                         $('.bottomBox').html(x.data);
                     } else {
+                        console.log(state);
+                        let inf=pathInfo(state.selectedFile.path);
                         $('.'+state.selectedFile.side+'Box .scroll-column').load(
-                            'list.php',{data:state.selectedFile.path,side:state.selectedFile.side}
+                            'list.php',{data:inf.path,side:state.selectedFile.side}
                         );
                     }
                 }

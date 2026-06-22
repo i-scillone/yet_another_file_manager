@@ -1,5 +1,7 @@
 <?php
 header('Content-Type: application/json');
+session_set_cookie_params(3600,'/yafm');
+session_start();
 require_once './vendor/autoload.php';
 define('ALERT_TEMPLATE','<div class="alert alert-warning alert-dismissible fade show">%s<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>');
 class Result
