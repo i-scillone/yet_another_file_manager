@@ -148,13 +148,33 @@ if (!isset($_SESSION['left']) || !isset($_SESSION['right'])) {
             e.stopPropagation(); // Evita che l'evento si propaghi a elementi genitori
             // Ora 'this' è esattamente l'elemento .dir cliccato
             state.setSelectedFile($(this));
-            // Ottieni le coordinate e mostra il menù
-            const mouseX = e.pageX;
-            const mouseY = e.pageY;
+            // Mostra prima il menù (invisibile) per poterne calcolare l'altezza e la larghezza reali
+            contextMenu.css({ visibility: 'hidden', display: 'block' });
+
+            const menuWidth = contextMenu.outerWidth();
+            const menuHeight = contextMenu.outerHeight();
+
+            // Ripristina la visibilità
+            contextMenu.css({ visibility: 'visible' });
+
+            let mouseX = e.pageX;
+            let mouseY = e.pageY;
+
+            // Controllo per il bordo inferiore dello schermo
+            if (mouseY + menuHeight > $(window).height()) {
+                mouseY = mouseY - menuHeight; // Sposta il menù verso l'alto
+            }
+
+            // Controllo per il bordo destro dello schermo (opzionale ma consigliato)
+            if (mouseX + menuWidth > $(window).width()) {
+                mouseX = mouseX - menuWidth; // Sposta il menù verso sinistra
+            }
+
+            // Applica le coordinate corrette
             contextMenu.css({
                 top: mouseY + "px",
                 left: mouseX + "px"
-            }).show();
+            });
         });
         $(document).on("click", function(e) {
             if (!$(e.target).closest("#context-menu").length) {
