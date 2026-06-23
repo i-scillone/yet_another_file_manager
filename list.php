@@ -2,12 +2,20 @@
 session_set_cookie_params(3600,'/yafm');
 session_start();
 require_once './vendor/autoload.php';
+const TEMPLATE=<<<HTML
+<div class="input-group">
+    <input id="path-%s" type="text" value="%s" class="form-control">
+    <button type="button" class="goto btn btn-outline-secondary" data-side="%s">
+        <i class="bi bi-arrow-right"></i>
+    </button>
+</div>
+HTML;
 
 function dirContents(string $path,string $side): void
 {
     printf(
-        "<input id='path-%s' type='text' value='%s' class='form-control'>",
-        $side,htmlspecialchars(realpath($path))
+        TEMPLATE,
+        $side,htmlspecialchars(realpath($path)),$side
     );
     echo "<table class='table table-hover'>\n";
     $d=scandir($path);
@@ -25,14 +33,18 @@ function dirContents(string $path,string $side): void
             break;
         }
         echo '<td>';
+        printf(
+            '<input type="checkbox" class="sel form-check-input me-2" value="%s" data-side="%s">',
+            htmlspecialchars($full),$side
+        );
         if (is_dir($full)) {
             printf(
-                '<a class="dir" data-path="%s" data-side="%s" href="#">%s</a>',
+                '<a class="dir" data-file="%s" data-side="%s" href="#">%s</a>',
                 htmlspecialchars($full),$side,htmlspecialchars($f)
             );
         } else {
             printf(
-                '<span class="file" data-path="%s" data-side="%s">%s</span>',
+                '<span class="file" data-file="%s" data-side="%s">%s</span>',
                 htmlspecialchars($full),$side,htmlspecialchars($f)
             );
         }
@@ -45,8 +57,5 @@ function dirContents(string $path,string $side): void
     echo "</table>\n";
 }
 
-$dbg=new MyClasses\Debug();
-$dbg->log($_POST);
 dirContents($_POST['data'],$_POST['side']);
 $_SESSION[$_POST['side']]=$_POST['data'];
-

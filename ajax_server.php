@@ -37,6 +37,13 @@ switch ($_GET['action'] ?? false) {
         $r->ok=unlink($_GET['file']);
         if (!$r->ok) $r->data=sprintf(ALERT_TEMPLATE,'Impossibile cancellare il file!');
         break;
+    case 'new':
+        $isDir=filter_var($_GET['dir']??false,FILTER_VALIDATE_BOOLEAN);
+        if ($isDir) $r->ok=mkdir($_GET['name']);
+        else $r->ok=touch($_GET['name']);
+        $dbg->log($r);
+        if ($r->ok===false) $r->data=sprintf(ALERT_TEMPLATE,'Impossibile creare il file o la directory!');
+        break;
     default:
         $r->data=sprintf(ALERT_TEMPLATE,'Azione non implementata!');
 }

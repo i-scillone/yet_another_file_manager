@@ -38,6 +38,7 @@ if (!isset($_SESSION['left']) || !isset($_SESSION['right'])) {
 </head>
 <body class="vh-100 d-flex flex-column m-0 overflow-hidden">
     <div id="context-menu" class="dropdown-menu" style="position: absolute; display: none;">
+        <a class="dropdown-item" href="#" id="new"><i class="bi bi-file-plus me-2"></i>Nuovo file/dir.</a>
         <a class="dropdown-item" href="#" id="copy"><i class="bi bi-copy me-2"></i>Copia</a>
         <a class="dropdown-item" href="#" id="move"><i class="bi bi-arrows-move me-2"></i>Sposta</a>
         <a class="dropdown-item" href="#" id="delete"><i class="bi bi-trash me-2"></i>Cancella</a>
@@ -71,12 +72,32 @@ if (!isset($_SESSION['left']) || !isset($_SESSION['right'])) {
                     <input id="copy-name" type="text" class="form-control">
                     <label for="copy-ext">Estensione</label>
                     <input id="copy-ext" type="text" class="form-control">
-                    <input id="copy-overwrite" type="checkbox" class="from-check-input">
-                    <label for="copy-overwite" class="from-check-label">Sovrascrivi</label>
+                    <input id="copy-overwrite" type="checkbox" class="form-check-input">
+                    <label for="copy-overwite" class="form-check-label">Sovrascrivi</label>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
                     <button id="copy-engage" type="button" class="btn btn-primary">OK</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="new-dialog" class="modal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Nuovo file/directory</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <label for="new-name">Nome</label>
+                    <input id="new-name" type="text" class="form-control">
+                    <input id="new-directory" type="checkbox" class="form-check-input">
+                    <label for="new-directory" class="form-check-label">Directory</label>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
+                    <button id="new-engage" type="button" class="btn btn-primary">OK</button>
                 </div>
             </div>
         </div>
@@ -115,8 +136,8 @@ if (!isset($_SESSION['left']) || !isset($_SESSION['right'])) {
             dialog: null,
             setSelectedFile(x) {
                 this.selectedFile={
-                    inf: pathInfo(x.data('path')),
-                    file: x.data('path'),
+                    inf: pathInfo(x.data('file')),
+                    file: x.data('file'),
                     side: x.data('side')
                 };
             },
@@ -137,9 +158,15 @@ if (!isset($_SESSION['left']) || !isset($_SESSION['right'])) {
             let encapsed=$(this);
             let side=encapsed.data('side');
             $(`.${side}Box .scroll-column`).load('list.php',{
-                data: encapsed.data('path'),
+                data: encapsed.data('file'),
                 side: side
             });
+        });
+        $(document).on('click','.goto',function(ev){
+            let side=$(this).data('side');
+            $('.'+side+'Box .scroll-column').load(
+                'list.php',{data: $('#path-'+side).val(), side: side}
+            );
         });
         // Menù contestuale
         const contextMenu = $("#context-menu");
@@ -150,26 +177,20 @@ if (!isset($_SESSION['left']) || !isset($_SESSION['right'])) {
             state.setSelectedFile($(this));
             // Mostra prima il menù (invisibile) per poterne calcolare l'altezza e la larghezza reali
             contextMenu.css({ visibility: 'hidden', display: 'block' });
-
             const menuWidth = contextMenu.outerWidth();
             const menuHeight = contextMenu.outerHeight();
-
             // Ripristina la visibilità
             contextMenu.css({ visibility: 'visible' });
-
             let mouseX = e.pageX;
             let mouseY = e.pageY;
-
             // Controllo per il bordo inferiore dello schermo
             if (mouseY + menuHeight > $(window).height()) {
                 mouseY = mouseY - menuHeight; // Sposta il menù verso l'alto
             }
-
             // Controllo per il bordo destro dello schermo (opzionale ma consigliato)
             if (mouseX + menuWidth > $(window).width()) {
                 mouseX = mouseX - menuWidth; // Sposta il menù verso sinistra
             }
-
             // Applica le coordinate corrette
             contextMenu.css({
                 top: mouseY + "px",
@@ -185,13 +206,20 @@ if (!isset($_SESSION['left']) || !isset($_SESSION['right'])) {
             e.preventDefault();
             state.setOtherSide();
             state.action=this.id;
+            let checked=$('.sel:checked').length;
             switch (state.action) {
                 case 'copy':
-                    $('#copy-dialog .modal-title').text('Copia su '+state.otherSide.path);
-                    $('#copy-dialog #copy-name').val(state.selectedFile.inf.name);
-                    $('#copy-dialog #copy-ext').val(state.selectedFile.inf.ext);
-                    state.dialog = new bootstrap.Modal('#copy-dialog');
-                    state.dialog.show();
+                    if (checked>0) {
+                        $('#confirm-dialog .modal-body').html('Sei sicuro di voler copiare <mark>'+checked+'</mark> file?');
+                        state.dialog=new bootstrap.Modal('#confirm-dialog');
+                        state.dialog.show();
+                    } else {
+                        $('#copy-dialog .modal-title').text('Copia su '+state.otherSide.path);
+                        $('#copy-dialog #copy-name').val(state.selectedFile.inf.name);
+                        $('#copy-dialog #copy-ext').val(state.selectedFile.inf.ext);
+                        state.dialog = new bootstrap.Modal('#copy-dialog');
+                        state.dialog.show();
+                    }
                     break;
                 case 'delete':
                     $('#confirm-dialog .modal-body').html('Sei sicuro di voler cancellare <mark>'+state.selectedFile.file+'</mark>?');
@@ -206,14 +234,18 @@ if (!isset($_SESSION['left']) || !isset($_SESSION['right'])) {
                     state.dialog.show();
                     break;
                 case 'refresh':
-                        $('.'+state.selectedFile.side+'Box .scroll-column').load(
-                            'list.php',{data:state.selectedFile.inf.path,side:state.selectedFile.side}
-                        );
-                        break;
+                    $('.'+state.selectedFile.side+'Box .scroll-column').load(
+                        'list.php',{data:state.selectedFile.inf.path,side:state.selectedFile.side}
+                    );
+                    break;
+                case 'new':
+                    state.dialog=new bootstrap.Modal('#new-dialog');
+                    state.dialog.show();
+                    break;
             }
             contextMenu.hide();
         });
-        $(document).on('click','#copy-engage',(ev)=>{
+        $(document).on('click','#copy-engage',function(ev){
             $.getJSON(
                 'ajax_server.php',
                 {
@@ -239,12 +271,40 @@ if (!isset($_SESSION['left']) || !isset($_SESSION['right'])) {
             );
             state.dialog.hide();
         });
-        $(document).on('click','#confirm-yes',(ev)=>{
+        $(document).on('click','#confirm-yes',function(ev){
+            switch (state.action) {
+                case 'delete':
+                    $.getJSON(
+                        'ajax_server.php',
+                        {
+                            action: 'delete',
+                            file: state.selectedFile.file
+                        },
+                        function(x){
+                            if (!x.ok) {
+                                $('.bottomBox').html(x.data);
+                            } else {
+                                $('.'+state.selectedFile.side+'Box .scroll-column').load(
+                                    'list.php',{data:state.selectedFile.inf.path,side:state.selectedFile.side}
+                                );
+                            }
+                        }
+                    );
+                    break;
+                default:
+                    $('.sel:checked').each(function(index,item){
+                        console.log(this.value);
+                    });
+            }
+            state.dialog.hide();
+        });
+        $(document).on('click','#new-engage',function(ev){
             $.getJSON(
                 'ajax_server.php',
                 {
-                    action: 'delete',
-                    file: state.selectedFile.file
+                    action: 'new',
+                    dir: $('#new-directory').is(':checked'),
+                    name: state.selectedFile.inf.path+$('#new-name').val()
                 },
                 function(x){
                     if (!x.ok) {
