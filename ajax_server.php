@@ -25,6 +25,17 @@ switch ($_GET['action'] ?? false) {
     case 'copy':
     case 'move':
         $overwrite = filter_var($_GET['overwrite'] ?? false, FILTER_VALIDATE_BOOLEAN);
+        if (is_array($_GET['from'])) {
+            $r->ok=true;
+            foreach ($_GET['from'] as $item) {
+                $name=basename($item);
+                $to=$_GET['to'].DIRECTORY_SEPARATOR.$name;
+                $dbg->log($item.'➔'.$to);
+                if ($ok===false) $r->ok=false;
+            }
+            if ($r->ok) $r->data='ERRORE!';
+        }
+        /*
         if (file_exists($_GET['to']) && !$overwrite) {
             $r->data=sprintf(ALERT_TEMPLATE,'Il file esiste già!');
         } elseif ($_GET['action']=='move') {
@@ -32,6 +43,7 @@ switch ($_GET['action'] ?? false) {
         } else {
             $r->ok=copy($_GET['from'],$_GET['to']);
         }
+        */
         break;
     case 'delete':
         $r->ok=unlink($_GET['file']);

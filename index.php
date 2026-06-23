@@ -138,7 +138,8 @@ if (!isset($_SESSION['left']) || !isset($_SESSION['right'])) {
                 this.selectedFile={
                     inf: pathInfo(x.data('file')),
                     file: x.data('file'),
-                    side: x.data('side')
+                    side: x.data('side'),
+                    class: '.'+x.data('side')+'Box'
                 };
             },
             setOtherSide() {
@@ -206,7 +207,7 @@ if (!isset($_SESSION['left']) || !isset($_SESSION['right'])) {
             e.preventDefault();
             state.setOtherSide();
             state.action=this.id;
-            let checked=$('.sel:checked').length;
+            let checked=$(state.selectedFile.class+' .sel:checked').length;
             switch (state.action) {
                 case 'copy':
                     if (checked>0) {
@@ -291,10 +292,22 @@ if (!isset($_SESSION['left']) || !isset($_SESSION['right'])) {
                         }
                     );
                     break;
+                case 'copy':
+                    let list=$(state.selectedFile.class+' .sel:checked').map(function(){
+                        return this.value;
+                    }).get();
+                    console.log(state.selectedFile.side,list);
+                    $.getJSON(
+                        'ajax_server.php',
+                        {
+                            action: 'copy',
+                            from: list,
+                            to: state.otherSide.path
+                        }
+                    );
+                    break;
                 default:
-                    $('.sel:checked').each(function(index,item){
-                        console.log(this.value);
-                    });
+                    console.log("Not implemented!");
             }
             state.dialog.hide();
         });
