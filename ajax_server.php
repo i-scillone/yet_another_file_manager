@@ -34,7 +34,7 @@ switch ($_GET['action'] ?? false) {
                 else $ok=copy($item,$to);
                 if ($ok===false) $r->ok=false;
             }
-            if (!$r->ok) $r->data='Errore nella/o copia/spostamento!';
+            if (!$r->ok) $r->data=$r->data=sprintf(ALERT_TEMPLATE,'Errore nella/o copia/spostamento!');
         } else {
             if (file_exists($_GET['to']) && !$overwrite) {
                 $r->data=sprintf(ALERT_TEMPLATE,'Il file esiste già!');
@@ -46,7 +46,11 @@ switch ($_GET['action'] ?? false) {
         }
         break;
     case 'delete':
-        $r->ok=unlink($_GET['file']);
+        $r->ok=true;
+        foreach ($_GET['file'] as $item) {
+            $ok=unlink($item);
+            if ($ok===false) $r->ok=false;
+        }
         if (!$r->ok) $r->data=sprintf(ALERT_TEMPLATE,'Impossibile cancellare il file!');
         break;
     case 'new':

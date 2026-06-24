@@ -4,7 +4,7 @@ session_start();
 require_once 'vendor/autoload.php';
 $dbg=new MyClasses\Debug();
 if (!isset($_SESSION['left']) || !isset($_SESSION['right'])) {
-    $_SESSION=['left'=>'.','right'=>'.'];
+    $_SESSION=['left'=>getcwd(),'right'=>getcwd()];
 }
 ?>
 <!DOCTYPE html>
@@ -42,6 +42,7 @@ if (!isset($_SESSION['left']) || !isset($_SESSION['right'])) {
         <a class="dropdown-item" href="#" id="copy"><i class="bi bi-copy me-2"></i>Copia</a>
         <a class="dropdown-item" href="#" id="move"><i class="bi bi-arrows-move me-2"></i>Sposta</a>
         <a class="dropdown-item" href="#" id="delete"><i class="bi bi-trash me-2"></i>Cancella</a>
+        <a class="dropdown-item" href="#" id="owner"><i class="bi bi-file-earmark-person me-2"></i>Proprietario/gruppo</a>
         <div class="dropdown-divider"></div>
         <a class="dropdown-item" href="#" id="refresh"><i class="bi bi-arrow-clockwise me-2"></i>Rileggi la dir.</a>
     </div>
@@ -55,7 +56,7 @@ if (!isset($_SESSION['left']) || !isset($_SESSION['right'])) {
                 <div class="modal-body">Sei sicuro?</div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No</button>
-                    <button id="confirm-yes" type="button" class="btn btn-primary">Sì</button>
+                    <button id="confirmed" type="button" class="btn btn-primary">Sì</button>
                 </div>
             </div>
         </div>
@@ -130,10 +131,11 @@ if (!isset($_SESSION['left']) || !isset($_SESSION['right'])) {
             else return false;
         }
         const state={
-            action: null,
+            action: '',
             selectedFile: null,
             otherSide: null,
             dialog: null,
+            totChecked: 0,
             setSelectedFile(x) {
                 this.selectedFile={
                     inf: pathInfo(x.data('file')),
@@ -207,11 +209,11 @@ if (!isset($_SESSION['left']) || !isset($_SESSION['right'])) {
             e.preventDefault();
             state.setOtherSide();
             state.action=this.id;
-            let checked=$(state.selectedFile.class+' .sel:checked').length;
+            state.totChecked=$(state.selectedFile.class+' .sel:checked').length;
             switch (state.action) {
                 case 'copy':
-                    if (checked>0) {
-                        $('#confirm-dialog .modal-body').html('Sei sicuro di voler copiare <mark>'+checked+'</mark> file?');
+                    if (state.totChecked>0) {
+                        $('#confirm-dialog .modal-body').html('Sei sicuro di voler copiare <mark>'+state.totChecked+'</mark> file?');
                         state.dialog=new bootstrap.Modal('#confirm-dialog');
                     } else {
                         $('#copy-dialog .modal-title').text('Copia su '+state.otherSide.path);
@@ -222,13 +224,18 @@ if (!isset($_SESSION['left']) || !isset($_SESSION['right'])) {
                     state.dialog.show();
                     break;
                 case 'delete':
-                    $('#confirm-dialog .modal-body').html('Sei sicuro di voler cancellare <mark>'+state.selectedFile.file+'</mark>?');
-                    state.dialog=new bootstrap.Modal('#confirm-dialog');
+                    if (state.totChecked>0) {
+                        $('#confirm-dialog .modal-body').html('Sei sicuro di voler cancellare <mark>'+state.totChecked+'</mark> file?');
+                        state.dialog=new bootstrap.Modal('#confirm-dialog');
+                    } else {
+                        $('#confirm-dialog .modal-body').html('Sei sicuro di voler cancellare <mark>'+state.selectedFile.file+'</mark>?');
+                        state.dialog=new bootstrap.Modal('#confirm-dialog');
+                    }
                     state.dialog.show();
                     break;
                 case 'move':
-                    if (checked>0) {
-                        $('#confirm-dialog .modal-body').html('Sei sicuro di voler spostare <mark>'+checked+'</mark> file?');
+                    if (state.totChecked>0) {
+                        $('#confirm-dialog .modal-body').html('Sei sicuro di voler spostare <mark>'+state.totChecked+'</mark> file?');
                         state.dialog=new bootstrap.Modal('#confirm-dialog');
                         state.dialog.show();
                     } else {
@@ -247,6 +254,9 @@ if (!isset($_SESSION['left']) || !isset($_SESSION['right'])) {
                 case 'new':
                     state.dialog=new bootstrap.Modal('#new-dialog');
                     state.dialog.show();
+                    break;
+                case 'owner':
+                    
                     break;
             }
             contextMenu.hide();
@@ -277,14 +287,18 @@ if (!isset($_SESSION['left']) || !isset($_SESSION['right'])) {
             );
             state.dialog.hide();
         });
-        $(document).on('click','#confirm-yes',function(ev){
+        $(document).on('click','#confirmed',function(ev){
+            let list=$(state.selectedFile.class+' .sel:checked').map(function(){
+                return this.value;
+            }).get();
             switch (state.action) {
                 case 'delete':
+                    if (state.totChecked==0) list=[state.selectedFile.file];
                     $.getJSON(
                         'ajax_server.php',
                         {
                             action: 'delete',
-                            file: state.selectedFile.file
+                            file: list
                         },
                         function(x){
                             if (!x.ok) {
@@ -295,13 +309,10 @@ if (!isset($_SESSION['left']) || !isset($_SESSION['right'])) {
                                 );
                             }
                         }
-                    );
+                    );                   
                     break;
                 case 'copy':
                 case 'move':
-                    let list=$(state.selectedFile.class+' .sel:checked').map(function(){
-                        return this.value;
-                    }).get();
                     $.getJSON(
                         'ajax_server.php',
                         {
