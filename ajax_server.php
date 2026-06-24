@@ -26,15 +26,15 @@ switch ($_GET['action'] ?? false) {
     case 'move':
         $overwrite = filter_var($_GET['overwrite'] ?? false, FILTER_VALIDATE_BOOLEAN);
         if (is_array($_GET['from'])) {
-            $ok=true;
+            $r->ok=true;
             foreach ($_GET['from'] as $item) {
                 $name=basename($item);
                 $to=$_GET['to'].DIRECTORY_SEPARATOR.$name;
-                $ok=copy($item,$to);
-                if ($ok===false) $ok=false;
+                if ($_GET['action']=='move') $ok=rename($item,$to);
+                else $ok=copy($item,$to);
+                if ($ok===false) $r->ok=false;
             }
-            $r->ok=$ok;
-            if (!$ok) $r->data='Errore nella copia!';
+            if (!$r->ok) $r->data='Errore nella/o copia/spostamento!';
         } else {
             if (file_exists($_GET['to']) && !$overwrite) {
                 $r->data=sprintf(ALERT_TEMPLATE,'Il file esiste già!');

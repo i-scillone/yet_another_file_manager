@@ -213,14 +213,13 @@ if (!isset($_SESSION['left']) || !isset($_SESSION['right'])) {
                     if (checked>0) {
                         $('#confirm-dialog .modal-body').html('Sei sicuro di voler copiare <mark>'+checked+'</mark> file?');
                         state.dialog=new bootstrap.Modal('#confirm-dialog');
-                        state.dialog.show();
                     } else {
                         $('#copy-dialog .modal-title').text('Copia su '+state.otherSide.path);
                         $('#copy-dialog #copy-name').val(state.selectedFile.inf.name);
                         $('#copy-dialog #copy-ext').val(state.selectedFile.inf.ext);
                         state.dialog = new bootstrap.Modal('#copy-dialog');
-                        state.dialog.show();
                     }
+                    state.dialog.show();
                     break;
                 case 'delete':
                     $('#confirm-dialog .modal-body').html('Sei sicuro di voler cancellare <mark>'+state.selectedFile.file+'</mark>?');
@@ -228,10 +227,16 @@ if (!isset($_SESSION['left']) || !isset($_SESSION['right'])) {
                     state.dialog.show();
                     break;
                 case 'move':
-                    $('#copy-dialog .modal-title').text('Sposta su '+state.otherSide.path);
-                    $('#copy-dialog #copy-name').val(state.selectedFile.inf.name);
-                    $('#copy-dialog #copy-ext').val(state.selectedFile.inf.ext);
-                    state.dialog = new bootstrap.Modal('#copy-dialog');
+                    if (checked>0) {
+                        $('#confirm-dialog .modal-body').html('Sei sicuro di voler spostare <mark>'+checked+'</mark> file?');
+                        state.dialog=new bootstrap.Modal('#confirm-dialog');
+                        state.dialog.show();
+                    } else {
+                        $('#copy-dialog .modal-title').text('Sposta su '+state.otherSide.path);
+                        $('#copy-dialog #copy-name').val(state.selectedFile.inf.name);
+                        $('#copy-dialog #copy-ext').val(state.selectedFile.inf.ext);
+                        state.dialog = new bootstrap.Modal('#copy-dialog');
+                    }
                     state.dialog.show();
                     break;
                 case 'refresh':
@@ -293,13 +298,14 @@ if (!isset($_SESSION['left']) || !isset($_SESSION['right'])) {
                     );
                     break;
                 case 'copy':
+                case 'move':
                     let list=$(state.selectedFile.class+' .sel:checked').map(function(){
                         return this.value;
                     }).get();
                     $.getJSON(
                         'ajax_server.php',
                         {
-                            action: 'copy',
+                            action: state.action,
                             from: list,
                             to: state.otherSide.path
                         },
@@ -311,12 +317,16 @@ if (!isset($_SESSION['left']) || !isset($_SESSION['right'])) {
                                     'list.php',{data:state.otherSide.path, side:state.otherSide.side}
                                 );
                                 $(state.selectedFile.class+' .sel:checked').prop('checked',false);
+                                $(state.selectedFile.class+' .scroll-column').load('list.php',{ 
+                                    data: state.selectedFile.inf.path, 
+                                    side: state.selectedFile.side
+                                });
                             }
                         }
                     );
                     break;
                 default:
-                    console.log("Not implemented!");
+                    $('.bottomBox').html('<div class="alert alert-warning">Not implemented!</div>');
             }
             state.dialog.hide();
         });
