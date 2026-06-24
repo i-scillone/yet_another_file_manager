@@ -296,13 +296,22 @@ if (!isset($_SESSION['left']) || !isset($_SESSION['right'])) {
                     let list=$(state.selectedFile.class+' .sel:checked').map(function(){
                         return this.value;
                     }).get();
-                    console.log(state.selectedFile.side,list);
                     $.getJSON(
                         'ajax_server.php',
                         {
                             action: 'copy',
                             from: list,
                             to: state.otherSide.path
+                        },
+                        function(x){
+                            if (!x.ok) {
+                                $('.bottomBox').html(x.data);
+                            } else {
+                                $(state.otherSide.class+' .scroll-column').load(
+                                    'list.php',{data:state.otherSide.path, side:state.otherSide.side}
+                                );
+                                $(state.selectedFile.class+' .sel:checked').prop('checked',false);
+                            }
                         }
                     );
                     break;

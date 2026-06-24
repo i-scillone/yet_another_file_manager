@@ -26,24 +26,24 @@ switch ($_GET['action'] ?? false) {
     case 'move':
         $overwrite = filter_var($_GET['overwrite'] ?? false, FILTER_VALIDATE_BOOLEAN);
         if (is_array($_GET['from'])) {
-            $r->ok=true;
+            $ok=true;
             foreach ($_GET['from'] as $item) {
                 $name=basename($item);
                 $to=$_GET['to'].DIRECTORY_SEPARATOR.$name;
-                $dbg->log($item.'➔'.$to);
-                if ($ok===false) $r->ok=false;
+                $ok=copy($item,$to);
+                if ($ok===false) $ok=false;
             }
-            if ($r->ok) $r->data='ERRORE!';
-        }
-        /*
-        if (file_exists($_GET['to']) && !$overwrite) {
-            $r->data=sprintf(ALERT_TEMPLATE,'Il file esiste già!');
-        } elseif ($_GET['action']=='move') {
-            $r->ok=rename($_GET['from'],$_GET['to']);
+            $r->ok=$ok;
+            if (!$ok) $r->data='Errore nella copia!';
         } else {
-            $r->ok=copy($_GET['from'],$_GET['to']);
+            if (file_exists($_GET['to']) && !$overwrite) {
+                $r->data=sprintf(ALERT_TEMPLATE,'Il file esiste già!');
+            } elseif ($_GET['action']=='move') {
+                $r->ok=rename($_GET['from'],$_GET['to']);
+            } else {
+                $r->ok=copy($_GET['from'],$_GET['to']);
+            }
         }
-        */
         break;
     case 'delete':
         $r->ok=unlink($_GET['file']);
@@ -53,7 +53,6 @@ switch ($_GET['action'] ?? false) {
         $isDir=filter_var($_GET['dir']??false,FILTER_VALIDATE_BOOLEAN);
         if ($isDir) $r->ok=mkdir($_GET['name']);
         else $r->ok=touch($_GET['name']);
-        $dbg->log($r);
         if ($r->ok===false) $r->data=sprintf(ALERT_TEMPLATE,'Impossibile creare il file o la directory!');
         break;
     default:
