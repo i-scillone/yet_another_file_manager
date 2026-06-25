@@ -256,7 +256,16 @@ if (!isset($_SESSION['left']) || !isset($_SESSION['right'])) {
                     state.dialog.show();
                     break;
                 case 'owner':
-                    
+                    $.getJSON(
+                        'ajax_server.php',
+                        {
+                            action: 'owner',
+                            file: state.selectedFile.file
+                        },
+                        function(x){
+                            $('.bottomBox').html(x.data);
+                        }
+                    );
                     break;
             }
             contextMenu.hide();

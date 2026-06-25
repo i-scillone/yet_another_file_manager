@@ -2,6 +2,7 @@
 header('Content-Type: application/json');
 require_once './vendor/autoload.php';
 define('ALERT_TEMPLATE','<div class="alert alert-warning alert-dismissible fade show">%s<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>');
+define('MSG_TEMPLATE','<div class="alert alert-primary alert-dismissible fade show">%s<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>');
 class Result
 {
     public bool $ok;
@@ -58,6 +59,14 @@ switch ($_GET['action'] ?? false) {
         if ($isDir) $r->ok=mkdir($_GET['name']);
         else $r->ok=touch($_GET['name']);
         if ($r->ok===false) $r->data=sprintf(ALERT_TEMPLATE,'Impossibile creare il file o la directory!');
+        break;
+    case 'owner':
+        $inf=new MyClasses\DirEntry($_GET['file']);
+        $r->data=sprintf(
+            MSG_TEMPLATE,
+            basename($_GET['file']).' ➔ '.$inf->getOwner()
+        );;
+        $r->ok=true;
         break;
     default:
         $r->data=sprintf(ALERT_TEMPLATE,'Azione non implementata!');
