@@ -113,7 +113,12 @@ if (!isset($_SESSION['left']) || !isset($_SESSION['right'])) {
             </div>
         </div>
     </div>
-    <div class="container-fluid bottomBox py-2 flex-shrink-0 border-top">Status bar</div>
+    <div class="container-fluid bottomBox py-2 flex-shrink-0 border-top">
+        <?php
+        $f=new \IntlDateFormatter('it',\IntlDateFormatter::FULL,\IntlDateFormatter::LONG);
+        echo $f->format(time());
+        ?>
+    </div>
     <script src="vendor/twbs/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="vendor/npm-asset/jquery/dist/jquery.min.js"></script>
     <script>
