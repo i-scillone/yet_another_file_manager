@@ -115,7 +115,7 @@ if (!isset($_SESSION['left']) || !isset($_SESSION['right'])) {
     </div>
     <div class="container-fluid bottomBox py-2 flex-shrink-0 border-top">
         <?php
-        $f=new \IntlDateFormatter('it',\IntlDateFormatter::FULL,\IntlDateFormatter::LONG);
+        $f=new \IntlDateFormatter(locale:'it', pattern:'eee, d MMM yyyy, H:mm z');
         echo $f->format(time());
         ?>
     </div>
