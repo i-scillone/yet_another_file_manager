@@ -38,6 +38,7 @@ if (!isset($_SESSION['left']) || !isset($_SESSION['right'])) {
 </head>
 <body class="vh-100 d-flex flex-column m-0 overflow-hidden">
     <div id="context-menu" class="dropdown-menu" style="position: absolute; display: none;">
+        <a class="dropdown-item" href="#" id="view"><i class="bi bi-eye me-2"></i>Visualizza</a>
         <a class="dropdown-item" href="#" id="new"><i class="bi bi-file-plus me-2"></i>Nuovo file/dir.</a>
         <a class="dropdown-item" href="#" id="copy"><i class="bi bi-copy me-2"></i>Copia</a>
         <a class="dropdown-item" href="#" id="move"><i class="bi bi-arrows-move me-2"></i>Sposta</a>
@@ -272,6 +273,11 @@ if (!isset($_SESSION['left']) || !isset($_SESSION['right'])) {
                         }
                     );
                     break;
+                case 'view':
+                    window.open('visualizza.php?file='+encodeURIComponent(state.selectedFile.file),'_blank');
+                    break;
+                default:
+                    $('.bottomBox').html('<div class="alert alert-danger alert-dismissible fade show">Non implementato!<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>');
             }
             contextMenu.hide();
         });
