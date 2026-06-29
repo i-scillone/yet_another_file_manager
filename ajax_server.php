@@ -25,6 +25,7 @@ $r=new Result();
 switch ($_GET['action'] ?? false) {
     case 'copy':
     case 'move':
+    case 'rename':
         $overwrite = filter_var($_GET['overwrite'] ?? false, FILTER_VALIDATE_BOOLEAN);
         if (is_array($_GET['from'])) {
             $r->ok=true;
@@ -37,12 +38,17 @@ switch ($_GET['action'] ?? false) {
             }
             if (!$r->ok) $r->data=$r->data=sprintf(ALERT_TEMPLATE,'Errore nella/o copia/spostamento!');
         } else {
-            if (file_exists($_GET['to']) && !$overwrite) {
-                $r->data=sprintf(ALERT_TEMPLATE,'Il file esiste già!');
-            } elseif ($_GET['action']=='move') {
-                $r->ok=rename($_GET['from'],$_GET['to']);
+            if ($_GET['action']=='rename') {
+                $to=dirname($_GET['from']).DIRECTORY_SEPARATOR.basename($_GET['to']);
             } else {
-                $r->ok=copy($_GET['from'],$_GET['to']);
+                $to=$_GET['to'];
+            }
+            if (file_exists($to) && !$overwrite) {
+                $r->data=sprintf(ALERT_TEMPLATE,'Il file esiste già!');
+            } elseif ($_GET['action']=='copy') {
+                $r->ok=copy($_GET['from'],$to);
+            } else {
+                $r->ok=rename($_GET['from'],$to);
             }
         }
         break;

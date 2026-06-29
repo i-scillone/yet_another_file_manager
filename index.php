@@ -43,6 +43,7 @@ if (!isset($_SESSION['left']) || !isset($_SESSION['right'])) {
         <a class="dropdown-item" href="#" id="copy"><i class="bi bi-copy me-2"></i>Copia</a>
         <a class="dropdown-item" href="#" id="move"><i class="bi bi-arrows-move me-2"></i>Sposta</a>
         <a class="dropdown-item" href="#" id="delete"><i class="bi bi-trash me-2"></i>Cancella</a>
+        <a class="dropdown-item" href="#" id="rename"><i class="bi bi-cursor-text me-2"></i></i>Rinomina</a>
         <a class="dropdown-item" href="#" id="owner"><i class="bi bi-file-earmark-person me-2"></i>Proprietario/gruppo</a>
         <div class="dropdown-divider"></div>
         <a class="dropdown-item" href="#" id="refresh"><i class="bi bi-arrow-clockwise me-2"></i>Rileggi la dir.</a>
@@ -276,6 +277,13 @@ if (!isset($_SESSION['left']) || !isset($_SESSION['right'])) {
                 case 'view':
                     window.open('visualizza.php?file='+encodeURIComponent(state.selectedFile.file),'_blank');
                     break;
+                case 'rename':
+                    $('#copy-dialog .modal-title').text('Rinomina');
+                    $('#copy-dialog #copy-name').val(state.selectedFile.inf.name);
+                    $('#copy-dialog #copy-ext').val(state.selectedFile.inf.ext);
+                    state.dialog = new bootstrap.Modal('#copy-dialog');
+                    state.dialog.show();
+                    break;
                 default:
                     $('.bottomBox').html('<div class="alert alert-danger alert-dismissible fade show">Non implementato!<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>');
             }
@@ -297,7 +305,7 @@ if (!isset($_SESSION['left']) || !isset($_SESSION['right'])) {
                         $('.'+state.otherSide.side+'Box .scroll-column').load(
                             'list.php',{data:state.otherSide.path,side:state.otherSide.side}
                         );
-                        if (state.action=='move') {
+                        if (state.action=='move' || state.action=='rename') {
                             $('.'+state.selectedFile.side+'Box .scroll-column').load(
                                 'list.php',{data:state.selectedFile.inf.path,side:state.selectedFile.side}
                             );

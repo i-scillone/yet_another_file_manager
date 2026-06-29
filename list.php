@@ -19,6 +19,7 @@ function dirContents(string $path,string $side): void
     );
     echo "<table class='table table-hover'>\n";
     $d=scandir($path);
+    natcasesort($d);
     if (!in_array('..',$d)) {
         array_unshift($d,'..');
     }
