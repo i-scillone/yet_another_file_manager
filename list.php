@@ -1,6 +1,7 @@
 <?php
 session_set_cookie_params(3600,'/yafm');
 session_start();
+session_regenerate_id(true);
 require_once './vendor/autoload.php';
 const TEMPLATE=<<<HTML
 <div class="input-group">
@@ -17,7 +18,15 @@ function dirContents(string $path,string $side): void
         TEMPLATE,
         $side,htmlspecialchars(realpath($path)),$side
     );
-    echo "<table class='table table-hover'>\n";
+    echo <<<HTML
+    <table class='table table-hover'>
+        <tr>
+            <th class="sort" data-side="{$side}" data-by="name">Nome</th>
+            <th>Permessi</th>
+            <th class="sort" data-side="{$side}" data-by="size">Dimensione</th>
+            <th class="sort" data-side="{$side}" data-by="time">Data ed ora</th>
+        </tr>\n
+    HTML;
     $d=scandir($path);
     natcasesort($d);
     if (!in_array('..',$d)) {
@@ -58,5 +67,7 @@ function dirContents(string $path,string $side): void
     echo "</table>\n";
 }
 
+$dbg=new MyClasses\Debug();
+$dbg->log($_SESSION);
 dirContents($_POST['data'],$_POST['side']);
-$_SESSION[$_POST['side']]=$_POST['data'];
+$_SESSION[$_POST['side']]['path']=$_POST['data'];

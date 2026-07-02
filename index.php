@@ -1,10 +1,20 @@
 <?php
 session_set_cookie_params(3600,'/yafm');
 session_start();
+session_regenerate_id(true);
 require_once 'vendor/autoload.php';
 $dbg=new MyClasses\Debug();
 if (!isset($_SESSION['left']) || !isset($_SESSION['right'])) {
-    $_SESSION=['left'=>getcwd(),'right'=>getcwd()];
+    $_SESSION=[
+        'left'=>[
+            'path'=>getcwd(),
+            'sortBy'=>'name'
+        ],
+        'right'=>[
+            'path'=>getcwd(),
+            'sortBy'=>'name'
+        ]
+    ];
 }
 ?>
 <!DOCTYPE html>
@@ -151,6 +161,12 @@ if (!isset($_SESSION['left']) || !isset($_SESSION['right'])) {
                     class: '.'+x.data('side')+'Box'
                 };
             },
+            setSide(x) {
+                this.selectedFile={
+                    file: $('#path-'+x).val(),
+                    side: x
+                }
+            },
             setOtherSide() {
                 let side = (this.selectedFile.side == 'left') ? 'right' : 'left';
                 this.otherSide={
@@ -161,8 +177,8 @@ if (!isset($_SESSION['left']) || !isset($_SESSION['right'])) {
             }
         };
 
-        $( '.leftBox .scroll-column').load('list.php',{ data:SESSION.left, side:'left' });
-        $('.rightBox .scroll-column').load('list.php',{ data:SESSION.right, side:'right' });
+        $( '.leftBox .scroll-column').load('list.php',{ data:SESSION.left.path, side:'left' });
+        $('.rightBox .scroll-column').load('list.php',{ data:SESSION.right.path, side:'right' });
         $(document).on('click','.dir',function(ev){
             ev.preventDefault();
             let encapsed=$(this);
@@ -388,6 +404,27 @@ if (!isset($_SESSION['left']) || !isset($_SESSION['right'])) {
                 }
             );
             state.dialog.hide();
+        });
+        $(document).on('click','.sort',function(ev){
+            state.setSide($(this).data('side'));
+            $.getJSON(
+                'ajax_server.php',
+                {
+                    action: 'sort',
+                    side: state.selectedFile.side,
+                    by: $(this).data('by')
+                },
+                function(x){
+                    if (!x.ok) {
+                        $('.bottomBox').html(x.data);
+                    } else {
+                        console.log(state.selectedFile);
+                        $('.'+state.selectedFile.side+'Box .scroll-column').load(
+                            'list.php',{data:state.selectedFile.file,side:state.selectedFile.side}
+                        );
+                    }
+                }
+            );
         });
     </script> 
 </body>

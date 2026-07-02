@@ -1,4 +1,7 @@
 <?php
+session_set_cookie_params(3600,'/yafm');
+session_start();
+session_regenerate_id(true);
 header('Content-Type: application/json');
 require_once './vendor/autoload.php';
 define('ALERT_TEMPLATE','<div class="alert alert-warning alert-dismissible fade show">%s<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>');
@@ -72,6 +75,10 @@ switch ($_GET['action'] ?? false) {
             MSG_TEMPLATE,
             basename($_GET['file']).' ➔ '.$inf->getOwner()
         );;
+        $r->ok=true;
+        break;
+    case 'sort':
+        $_SESSION[$_GET['side']]['sortBy']=$_GET['by'];
         $r->ok=true;
         break;
     default:
