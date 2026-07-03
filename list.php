@@ -35,6 +35,8 @@ function getDirectory(string $path): array|bool
 $dbg=new MyClasses\Debug();
 $d=getDirectory($_POST['data']);
 usort($d,function ($a, $b) {
+    if ($a->isDir() && !$b->isDir()) return -1;
+    if (!$a->isDir() && $b->isDir()) return 1;
     $r=0;
     switch ($_SESSION[$_POST['side']]['sortBy']) {
         case 'size':
