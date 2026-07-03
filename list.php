@@ -33,32 +33,41 @@ function getDirectory(string $path): array|bool
 }
 
 $dbg=new MyClasses\Debug();
-$dbg->log($_REQUEST);
-$dbg->log($_SESSION);
 $d=getDirectory($_POST['data']);
 usort($d,function ($a, $b) {
+    $r=0;
     switch ($_SESSION[$_POST['side']]['sortBy']) {
         case 'size':
-            return $a->size <=> $b->size;
+            $r=$a->size <=> $b->size;
+            break;
         case 'time':
-            return $a->time <=> $b->time;
+            $r=$a->time <=> $b->time;
+            break;
         default:
-            return strcasecmp($a->name,$b->name);
+            $r=strcasecmp($a->name,$b->name);
     }
+    if ($_SESSION[$_POST['side']]['desc']) return -$r;
+    else return $r;
 });
 printf(
     TEMPLATE,
     $_POST['side'],htmlspecialchars(realpath($_POST['data'])),$_POST['side']
 );
-echo <<<HTML
-<table class='table table-hover'>
-    <tr>
-        <th class="sort" data-side="{$_POST['side']}" data-by="name">Nome</th>
-        <th>Permessi</th>
-        <th class="sort" data-side="{$_POST['side']}" data-by="size">Dimensione</th>
-        <th class="sort" data-side="{$_POST['side']}" data-by="time">Data ed ora</th>
-    </tr>\n
-HTML;
+$headers=['name'=>'Nome','perm'=>'Permessi','size'=>'Dimensione','time'=>'Data ed ora'];
+echo "<table class='table table-hover'>\n<tr>";
+foreach ($headers as $k=>$v) {
+    if ($_SESSION[$_POST['side']]['sortBy']==$k) {
+        if ($_SESSION[$_POST['side']]['desc']) $label=$v.'↓';
+        else $label=$v.'↑';
+    } else {
+        $label=$v;
+    }
+    printf(
+        '<th class="%s" data-side="%s" data-by="%s">%s</th>',
+        $k!='perm'?'sort':'',$_POST['side'],$k,$label
+    );
+}
+echo "</tr>\n";
 foreach($d as $f) {
     echo '<tr>';
     echo '<td>';

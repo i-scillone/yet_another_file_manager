@@ -23,7 +23,6 @@ class Result
 }
 
 $dbg=new MyClasses\Debug();
-$dbg->log($_GET);
 $r=new Result();
 switch ($_GET['action'] ?? false) {
     case 'copy':
@@ -78,9 +77,12 @@ switch ($_GET['action'] ?? false) {
         $r->ok=true;
         break;
     case 'sort':
-        $_SESSION[$_GET['side']]['sortBy']=$_GET['by'];
+        if ($_SESSION[$_GET['side']]['sortBy']==$_GET['by']) {
+            $_SESSION[$_GET['side']]['desc']=!$_SESSION[$_GET['side']]['desc'];
+        } else {
+            $_SESSION[$_GET['side']]['sortBy']=$_GET['by'];
+        }
         $r->ok=true;
-        $dbg->log($_SESSION);
         break;
     default:
         $r->data=sprintf(ALERT_TEMPLATE,'Azione non implementata!');

@@ -8,11 +8,13 @@ if (!isset($_SESSION['left']) || !isset($_SESSION['right'])) {
     $_SESSION=[
         'left'=>[
             'path'=>getcwd(),
-            'sortBy'=>'name'
+            'sortBy'=>'name',
+            'desc'=>false
         ],
         'right'=>[
             'path'=>getcwd(),
-            'sortBy'=>'name'
+            'sortBy'=>'name',
+            'desc'=>false
         ]
     ];
 }
@@ -177,9 +179,7 @@ if (!isset($_SESSION['left']) || !isset($_SESSION['right'])) {
             }
         };
 
-        console.log(SESSION.left.path);
         $( '.leftBox .scroll-column').load('list.php',{ data:SESSION.left.path, side:'left' });
-        console.log(SESSION.right.path);
         $('.rightBox .scroll-column').load('list.php',{ data:SESSION.right.path, side:'right' });
         $(document).on('click','.dir',function(ev){
             ev.preventDefault();
