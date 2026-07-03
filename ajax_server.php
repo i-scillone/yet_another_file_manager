@@ -80,6 +80,7 @@ switch ($_GET['action'] ?? false) {
     case 'sort':
         $_SESSION[$_GET['side']]['sortBy']=$_GET['by'];
         $r->ok=true;
+        $dbg->log($_SESSION);
         break;
     default:
         $r->data=sprintf(ALERT_TEMPLATE,'Azione non implementata!');

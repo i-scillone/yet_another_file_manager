@@ -1,7 +1,6 @@
 <?php
 session_set_cookie_params(3600,'/yafm');
 session_start();
-session_regenerate_id(true);
 require_once './vendor/autoload.php';
 const TEMPLATE=<<<HTML
 <div class="input-group">
@@ -12,62 +11,76 @@ const TEMPLATE=<<<HTML
 </div>
 HTML;
 
-function dirContents(string $path,string $side): void
+function getDirectory(string $path): array|bool
 {
-    printf(
-        TEMPLATE,
-        $side,htmlspecialchars(realpath($path)),$side
-    );
-    echo <<<HTML
-    <table class='table table-hover'>
-        <tr>
-            <th class="sort" data-side="{$side}" data-by="name">Nome</th>
-            <th>Permessi</th>
-            <th class="sort" data-side="{$side}" data-by="size">Dimensione</th>
-            <th class="sort" data-side="{$side}" data-by="time">Data ed ora</th>
-        </tr>\n
-    HTML;
     $d=scandir($path);
-    natcasesort($d);
     if (!in_array('..',$d)) {
         array_unshift($d,'..');
     }
+    $buf=[];
     foreach($d as $f) {
         if ($f=='.') continue;
-        echo '<tr>';
         $full=realpath($path.DIRECTORY_SEPARATOR.$f);
         try {
             $inf=new MyClasses\DirEntry($full);
+            if ($f=='..') $inf->name='..';
+            $buf[]=$inf;
         } catch (Exception $e) {
-            echo "<div class='alert alert-danger'>Errore alla riga {$e->getLine()}: «{$e->getMessage()}»</div>\n";
-            break;
+            return false;
         }
-        echo '<td>';
-        printf(
-            '<input type="checkbox" class="sel form-check-input me-2" value="%s" data-side="%s">',
-            htmlspecialchars($full),$side
-        );
-        if (is_dir($full)) {
-            printf(
-                '<a class="dir" data-file="%s" data-side="%s" href="#">%s</a>',
-                htmlspecialchars($full),$side,htmlspecialchars($f)
-            );
-        } else {
-            printf(
-                '<span class="file" data-file="%s" data-side="%s">%s</span>',
-                htmlspecialchars($full),$side,htmlspecialchars($f)
-            );
-        }
-        echo '</td><td>'.$inf->getMode().'</td>';
-        echo "<td>{$inf->getSize()}</td>";
-        echo "<td>{$inf->getTime()}</td>";
-        echo "</tr>\n";
-        $inf=null;
     }
-    echo "</table>\n";
+    return $buf;
 }
 
 $dbg=new MyClasses\Debug();
+$dbg->log($_REQUEST);
 $dbg->log($_SESSION);
-dirContents($_POST['data'],$_POST['side']);
+$d=getDirectory($_POST['data']);
+usort($d,function ($a, $b) {
+    switch ($_SESSION[$_POST['side']]['sortBy']) {
+        case 'size':
+            return $a->size <=> $b->size;
+        case 'time':
+            return $a->time <=> $b->time;
+        default:
+            return strcasecmp($a->name,$b->name);
+    }
+});
+printf(
+    TEMPLATE,
+    $_POST['side'],htmlspecialchars(realpath($_POST['data'])),$_POST['side']
+);
+echo <<<HTML
+<table class='table table-hover'>
+    <tr>
+        <th class="sort" data-side="{$_POST['side']}" data-by="name">Nome</th>
+        <th>Permessi</th>
+        <th class="sort" data-side="{$_POST['side']}" data-by="size">Dimensione</th>
+        <th class="sort" data-side="{$_POST['side']}" data-by="time">Data ed ora</th>
+    </tr>\n
+HTML;
+foreach($d as $f) {
+    echo '<tr>';
+    echo '<td>';
+    printf(
+        '<input type="checkbox" class="sel form-check-input me-2" value="%s" data-side="%s">',
+        htmlspecialchars($f->path),$_POST['side']
+    );
+    if (is_dir($f->path)) {
+        printf(
+            '<a class="dir" data-file="%s" data-side="%s" href="#">%s</a>',
+            htmlspecialchars($f->path),$_POST['side'],htmlspecialchars($f->name)
+        );
+    } else {
+        printf(
+            '<span class="file" data-file="%s" data-side="%s">%s</span>',
+            htmlspecialchars($f->path),$_POST['side'],htmlspecialchars($f->name)
+        );
+    }
+    echo '</td><td>'.$f->getMode().'</td>';
+    echo "<td>{$f->getSize()}</td>";
+    echo "<td>{$f->getTime()}</td>";
+    echo "</tr>\n";
+}
+echo "</table>\n";
 $_SESSION[$_POST['side']]['path']=$_POST['data'];
