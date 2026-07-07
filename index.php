@@ -18,6 +18,9 @@ if (!isset($_SESSION['left']) || !isset($_SESSION['right'])) {
         ]
     ];
 }
+$r=preg_match('#(?:.*[\\\/])?(.*)#',$_SERVER['REMOTE_USER'],$found);
+$user= $r? $found[1]: null;
+$home= PHP_OS_FAMILY=='Windows'? 'C:\\Users\\'.$user: '/home/'.$user;
 ?>
 <!DOCTYPE html>
 <html lang="it" data-bs-theme="dark">
@@ -59,6 +62,7 @@ if (!isset($_SESSION['left']) || !isset($_SESSION['right'])) {
         <a class="dropdown-item" href="#" id="owner"><i class="bi bi-file-earmark-person me-2"></i>Proprietario/gruppo</a>
         <div class="dropdown-divider"></div>
         <a class="dropdown-item" href="#" id="refresh"><i class="bi bi-arrow-clockwise me-2"></i>Rileggi la dir.</a>
+        <a class="dropdown-item" href="#" id="home"><i class="bi bi-house me-2"></i>Vai alla Home Dir.</a>
     </div>
     <div id="confirm-dialog" class="modal" tabindex="-1">
         <div class="modal-dialog">
@@ -130,7 +134,7 @@ if (!isset($_SESSION['left']) || !isset($_SESSION['right'])) {
     <div class="container-fluid bottomBox py-2 flex-shrink-0 border-top">
         <?php
         $f=new \IntlDateFormatter(locale:'it', pattern:'eee, d MMM yyyy, H:mm z');
-        echo $f->format(time());
+        echo "<b>Utente:</b> $user <b>Data ed ora:</b> ".$f->format(time());
         ?>
     </div>
     <script src="vendor/twbs/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
@@ -139,6 +143,7 @@ if (!isset($_SESSION['left']) || !isset($_SESSION['right'])) {
         <?php 
         printf("const DIR_SEP='%s';\n",addslashes(DIRECTORY_SEPARATOR));
         printf("const SESSION=%s;\n",json_encode($_SESSION));
+        printf("const HOME=%s;\n",json_encode($home));
         ?>
         function pathInfo(x)
         {
@@ -274,6 +279,11 @@ if (!isset($_SESSION['left']) || !isset($_SESSION['right'])) {
                 case 'refresh':
                     $('.'+state.selectedFile.side+'Box .scroll-column').load(
                         'list.php',{data:state.selectedFile.inf.path,side:state.selectedFile.side}
+                    );
+                    break;
+                case 'home':
+                    $('.'+state.selectedFile.side+'Box .scroll-column').load(
+                        'list.php',{data:HOME,side:state.selectedFile.side}
                     );
                     break;
                 case 'new':

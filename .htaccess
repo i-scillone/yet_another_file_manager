@@ -1,0 +1,21 @@
+<IfModule mod_ntlm.c>
+    AuthName "Credenziali ministeriali (ADN)"
+    AuthType SSPI
+    NTLMAuth On
+    NTLMAuthoritative On
+    <RequireAll>
+        <RequireAny>
+            Require valid-user
+            #require sspi-user EMEA\group_name
+        </RequireAny>
+        <RequireNone>
+            Require user "ANONYMOUS LOGON"
+        </RequireNone>
+    </RequireAll>
+</IfModule>
+<IfModule !mod_ntlm.c>
+    AuthType Basic
+    AuthName "Area protetta"
+    AuthUserFile local_users
+    Require valid-user
+</IfModule>
