@@ -134,7 +134,7 @@ $home= PHP_OS_FAMILY=='Windows'? 'C:\\Users\\'.$user: '/home/'.$user;
     <div class="container-fluid bottomBox py-2 flex-shrink-0 border-top">
         <?php
         $f=new \IntlDateFormatter(locale:'it', pattern:'eee, d MMM yyyy, H:mm z');
-        echo "<b>Utente:</b> $user <b>Data ed ora:</b> ".$f->format(time());
+        echo "<span class='text-success'>Utente:</span> $user <span class='text-success'>Data ed ora:</span> ".$f->format(time());
         ?>
     </div>
     <script src="vendor/twbs/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
